@@ -1,0 +1,85 @@
+* { box-sizing: border-box; margin: 0; }
+
+:root {
+  --verde: #0f766e;
+  --verde-claro: #ccfbf1;
+  --fundo: #f8fafc;
+  --texto: #0f172a;
+  --sub: #64748b;
+  --borda: #e2e8f0;
+}
+
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+.app { display: flex; flex-direction: column; min-height: 100dvh; max-width: 560px; margin: 0 auto; }
+
+.topbar {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 14px 16px; background: var(--verde); color: #fff;
+  position: sticky; top: 0; z-index: 10;
+}
+.logo { font-weight: 700; font-size: 1.15rem; }
+.clinica { font-size: 0.75rem; opacity: 0.85; }
+
+.conteudo { flex: 1; padding: 16px; padding-bottom: 84px; }
+
+.tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  max-width: 560px; margin: 0 auto;
+  display: flex; background: #fff; border-top: 1px solid var(--borda);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 0 10px; border: 0; background: none; color: var(--sub);
+  font-size: 0.72rem; cursor: pointer;
+}
+.tab.ativa { color: var(--verde); font-weight: 600; }
+.tab-icone { font-size: 1.25rem; }
+
+.painel h2 { font-size: 1.2rem; margin-bottom: 10px; }
+.sub { color: var(--sub); font-size: 0.85rem; }
+.erro { color: #b91c1c; font-size: 0.85rem; margin: 8px 0; }
+
+.formulario { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.formulario input, .formulario select, .chat-envio input {
+  padding: 11px 12px; border: 1px solid var(--borda); border-radius: 10px;
+  font-size: 1rem; background: #fff; color: var(--texto);
+}
+button {
+  padding: 11px 14px; border: 0; border-radius: 10px; background: var(--verde);
+  color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+button:disabled { opacity: 0.6; }
+
+.lista { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.cartao {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 12px;
+}
+.cartao-embreve { opacity: 0.75; }
+.selo {
+  font-size: 0.7rem; font-weight: 600; color: var(--sub);
+  background: var(--fundo); border: 1px solid var(--borda);
+  border-radius: 999px; padding: 3px 9px; white-space: nowrap;
+}
+.selo-emily { color: var(--verde); background: var(--verde-claro); border-color: transparent; }
+
+/* Chat */
+.painel-chat { display: flex; flex-direction: column; min-height: calc(100dvh - 150px); }
+.chat-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.status { font-size: 0.72rem; border-radius: 999px; padding: 3px 9px; background: var(--borda); color: var(--sub); }
+.status-conectada { background: var(--verde-claro); color: var(--verde); }
+.chat-vazio { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+.chat-mensagens { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.bolha { max-width: 85%; padding: 10px 12px; border-radius: 14px; font-size: 0.95rem; }
+.bolha-emily { align-self: flex-start; background: #fff; border: 1px solid var(--borda); border-bottom-left-radius: 4px; }
+.bolha-voce { align-self: flex-end; background: var(--verde); color: #fff; border-bottom-right-radius: 4px; }
+.proposta { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--borda); display: flex; flex-direction: column; gap: 8px; }
+.botao-confirmar { background: var(--verde); }
+.chat-envio { display: flex; gap: 8px; margin-top: 10px; }
+.chat-envio input { flex: 1; }
