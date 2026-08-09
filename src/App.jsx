@@ -2,45 +2,69 @@ import React, { useState } from "react";
 import Emily from "./tabs/Emily.jsx";
 import Agenda from "./tabs/Agenda.jsx";
 import Pacientes from "./tabs/Pacientes.jsx";
-import Mais from "./tabs/Mais.jsx";
+import Servicos from "./tabs/Servicos.jsx";
+import Financeiro from "./tabs/Financeiro.jsx";
+import Config from "./tabs/Config.jsx";
+import EmBreve from "./tabs/EmBreve.jsx";
 
-const TABS = [
-  { id: "emily", label: "Emily", icon: "💬" },
+const MODULOS = [
   { id: "agenda", label: "Agenda", icon: "📅" },
+  { id: "emily", label: "Emily", icon: "💬" },
   { id: "pacientes", label: "Pacientes", icon: "🧑‍⚕️" },
-  { id: "mais", label: "Mais", icon: "⋯" },
+  { id: "servicos", label: "Serviços", icon: "💆" },
+  { id: "financeiro", label: "Financeiro", icon: "💵" },
+  { id: "crescimento", label: "Crescimento", icon: "📈", embreve: "Marketing e captação de pacientes com anonimização LGPD." },
+  { id: "lia", label: "Lia", icon: "🩺", embreve: "Avaliação clínica com IA: triagem, copiloto do profissional e nota SOAP." },
+  { id: "vitrine", label: "Vitrine", icon: "🏪", embreve: "Site público da clínica: serviços, preços e agendamento online." },
+  { id: "config", label: "Configurações", icon: "⚙️" },
 ];
 
 export default function App() {
-  const [tab, setTab] = useState("emily");
+  const [tab, setTab] = useState("agenda");
+  const [menuAberto, setMenuAberto] = useState(false);
   const [agendaVersion, setAgendaVersion] = useState(0);
 
+  const ativo = MODULOS.find((m) => m.id === tab);
+
+  function irPara(id) {
+    setTab(id);
+    setMenuAberto(false);
+  }
+
   return (
-    <div className="app">
+    <div className="layout">
       <header className="topbar">
+        <button className="hamburguer" onClick={() => setMenuAberto((v) => !v)} aria-label="Menu">
+          ☰
+        </button>
         <span className="logo">ClinicNow</span>
-        <span className="clinica">Clínica Demonstração · v0</span>
+        <span className="clinica">Clínica Demonstração · v1</span>
       </header>
-      <main className="conteudo">
-        {tab === "emily" && (
-          <Emily onAgendou={() => setAgendaVersion((v) => v + 1)} />
-        )}
-        {tab === "agenda" && <Agenda key={agendaVersion} />}
-        {tab === "pacientes" && <Pacientes />}
-        {tab === "mais" && <Mais />}
-      </main>
-      <nav className="tabbar">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={tab === t.id ? "tab ativa" : "tab"}
-            onClick={() => setTab(t.id)}
-          >
-            <span className="tab-icone">{t.icon}</span>
-            <span>{t.label}</span>
-          </button>
-        ))}
-      </nav>
+      <div className="corpo">
+        <nav className={menuAberto ? "sidebar aberta" : "sidebar"}>
+          {MODULOS.map((m) => (
+            <button
+              key={m.id}
+              className={tab === m.id ? "item-menu ativo" : "item-menu"}
+              onClick={() => irPara(m.id)}
+            >
+              <span className="item-icone">{m.icon}</span>
+              <span className="item-rotulo">{m.label}</span>
+              {m.embreve && <span className="ponto-embreve" title="em breve" />}
+            </button>
+          ))}
+        </nav>
+        {menuAberto && <div className="sombra-menu" onClick={() => setMenuAberto(false)} />}
+        <main className="conteudo">
+          {tab === "agenda" && <Agenda key={agendaVersion} />}
+          {tab === "emily" && <Emily onAgendou={() => setAgendaVersion((v) => v + 1)} />}
+          {tab === "pacientes" && <Pacientes />}
+          {tab === "servicos" && <Servicos />}
+          {tab === "financeiro" && <Financeiro />}
+          {tab === "config" && <Config />}
+          {ativo?.embreve && <EmBreve nome={ativo.label} icone={ativo.icon} desc={ativo.embreve} />}
+        </main>
+      </div>
     </div>
   );
 }

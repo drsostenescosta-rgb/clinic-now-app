@@ -7,7 +7,8 @@
     "dev": "concurrently -k \"node server.mjs\" \"vite\"",
     "build": "vite build",
     "preview": "vite preview",
-    "emily:create": "node scripts/create-emily-agent.mjs"
+    "emily:create": "node scripts/create-emily-agent.mjs",
+    "emily:update": "node scripts/update-emily-agent.mjs"
   },
   "dependencies": {
     "@elevenlabs/client": "^0.6.2",

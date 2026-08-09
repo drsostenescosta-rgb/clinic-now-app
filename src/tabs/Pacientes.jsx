@@ -5,6 +5,7 @@ export default function Pacientes() {
   const [pacientes, setPacientes] = useState(null);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [driveUrl, setDriveUrl] = useState("");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
 
@@ -26,13 +27,16 @@ export default function Pacientes() {
     if (!nome.trim()) return;
     setSalvando(true);
     setErro("");
-    const { error } = await supabase
-      .from("clinicnow_pacientes")
-      .insert({ nome: nome.trim(), telefone: telefone.trim() || null });
+    const { error } = await supabase.from("clinicnow_pacientes").insert({
+      nome: nome.trim(),
+      telefone: telefone.trim() || null,
+      drive_url: driveUrl.trim() || null,
+    });
     setSalvando(false);
     if (error) return setErro(error.message);
     setNome("");
     setTelefone("");
+    setDriveUrl("");
     carregar();
   }
 
@@ -51,6 +55,12 @@ export default function Pacientes() {
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
         />
+        <input
+          placeholder="Link da pasta no Google Drive (opcional)"
+          type="url"
+          value={driveUrl}
+          onChange={(e) => setDriveUrl(e.target.value)}
+        />
         <button type="submit" disabled={salvando}>
           {salvando ? "Salvando…" : "Cadastrar paciente"}
         </button>
@@ -68,9 +78,21 @@ export default function Pacientes() {
                 <strong>{p.nome}</strong>
                 {p.telefone && <div className="sub">{p.telefone}</div>}
               </div>
-              <span className="sub">
-                {new Date(p.criado_em).toLocaleDateString("pt-BR")}
-              </span>
+              <div className="paciente-acoes">
+                {p.drive_url && (
+                  <a
+                    className="botao-leve botao-link"
+                    href={p.drive_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    📁 Prontuário no Drive
+                  </a>
+                )}
+                <span className="sub">
+                  {new Date(p.criado_em).toLocaleDateString("pt-BR")}
+                </span>
+              </div>
             </li>
           ))}
         </ul>

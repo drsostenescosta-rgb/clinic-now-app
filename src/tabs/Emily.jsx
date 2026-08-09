@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Conversation } from "@elevenlabs/client";
-import { supabase } from "../supabase.js";
+import { supabase, carregarServicos, acharServico, fmtUSD } from "../supabase.js";
 import { formatarInicio } from "./Agenda.jsx";
-
-const TOKEN_SERVER = "http://localhost:4790";
+import { criarEventoGoogle, TOKEN_SERVER } from "../gcal.js";
 
 // A Emily marca propostas de agendamento com a linha:
 // [PROPOSTA] paciente=<nome>; servico=<serviço>; inicio=YYYY-MM-DDTHH:MM
@@ -30,8 +29,13 @@ export default function Emily({ onAgendou }) {
   const [mensagens, setMensagens] = useState([]);
   const [texto, setTexto] = useState("");
   const [erro, setErro] = useState("");
+  const [servicos, setServicos] = useState([]);
   const convRef = useRef(null);
   const fimRef = useRef(null);
+
+  useEffect(() => {
+    carregarServicos().then(setServicos).catch(() => {});
+  }, []);
 
   useEffect(() => {
     fimRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -101,17 +105,31 @@ export default function Emily({ onAgendou }) {
     const msg = mensagens[idx];
     if (!msg?.proposta || msg.confirmada) return;
     const { paciente, servico, inicio } = msg.proposta;
-    const { error } = await supabase.from("clinicnow_consultas").insert({
-      paciente_nome: paciente || "Paciente (via Emily)",
-      servico,
-      inicio: inicio.toISOString(),
-      origem: "emily",
-    });
+    const svc = acharServico(servicos, servico);
+    const { data, error } = await supabase
+      .from("clinicnow_consultas")
+      .insert({
+        paciente_nome: paciente || "Paciente (via Emily)",
+        servico: svc?.nome || servico,
+        servico_id: svc?.id || null,
+        preco_usd: svc ? svc.preco_usd : null,
+        inicio: inicio.toISOString(),
+        origem: "emily",
+        status: "agendada",
+      })
+      .select()
+      .single();
     if (error) return setErro(error.message);
     setMensagens((prev) =>
       prev.map((m, i) => (i === idx ? { ...m, confirmada: true } : m))
     );
     onAgendou?.();
+    const g = await criarEventoGoogle(data, svc);
+    if (!g.ok) {
+      setMensagens((prev) =>
+        prev.map((m, i) => (i === idx ? { ...m, avisoGcal: true } : m))
+      );
+    }
   }
 
   return (
@@ -125,7 +143,7 @@ export default function Emily({ onAgendou }) {
           <p className="sub">
             Emily é a recepcionista com IA da clínica (ela se identifica como
             assistente virtual). Converse por texto, peça horários e confirme o
-            agendamento — ele cai direto na Agenda.
+            agendamento — ele cai direto na Agenda com o preço do catálogo.
           </p>
           <button onClick={conectar} disabled={status === "conectando"}>
             {status === "conectando" ? "Conectando…" : "Iniciar conversa"}
@@ -134,26 +152,35 @@ export default function Emily({ onAgendou }) {
       )}
       {erro && <p className="erro">{erro}</p>}
       <div className="chat-mensagens">
-        {mensagens.map((m, i) => (
-          <div key={i} className={`bolha bolha-${m.de}`}>
-            {m.texto && <p>{m.texto}</p>}
-            {m.proposta && (
-              <div className="proposta">
-                <div className="sub">
-                  {m.proposta.servico} · {formatarInicio(m.proposta.inicio.toISOString())}
-                  {m.proposta.paciente ? ` · ${m.proposta.paciente}` : ""}
+        {mensagens.map((m, i) => {
+          const svc = m.proposta ? acharServico(servicos, m.proposta.servico) : null;
+          return (
+            <div key={i} className={`bolha bolha-${m.de}`}>
+              {m.texto && <p>{m.texto}</p>}
+              {m.proposta && (
+                <div className="proposta">
+                  <div className="sub">
+                    {m.proposta.servico} · {formatarInicio(m.proposta.inicio.toISOString())}
+                    {m.proposta.paciente ? ` · ${m.proposta.paciente}` : ""}
+                    {svc ? ` · ${fmtUSD(svc.preco_usd)}` : ""}
+                  </div>
+                  {m.confirmada ? (
+                    <span className="selo selo-emily">agendado ✓</span>
+                  ) : (
+                    <button className="botao-confirmar" onClick={() => confirmarProposta(i)}>
+                      ✓ Confirmar agendamento
+                    </button>
+                  )}
+                  {m.avisoGcal && (
+                    <span className="sub">
+                      Google Agenda não conectado — consulta salva; use o .ics na Agenda.
+                    </span>
+                  )}
                 </div>
-                {m.confirmada ? (
-                  <span className="selo selo-emily">agendado ✓</span>
-                ) : (
-                  <button className="botao-confirmar" onClick={() => confirmarProposta(i)}>
-                    ✓ Confirmar agendamento
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
         <div ref={fimRef} />
       </div>
       {status === "conectada" && (
