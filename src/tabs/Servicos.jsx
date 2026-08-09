@@ -1,42 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { supabase, carregarServicos, invalidarServicos, fmtUSD, CORES_CATEGORIA } from "../supabase.js";
+import { carregarServicos, fmtUSD, CORES_CATEGORIA } from "../supabase.js";
 
+// v1.1: catálogo é SOMENTE LEITURA no app. A política RLS de UPDATE anônimo em
+// clinicnow_servicos foi removida (qualquer pessoa com a chave publishable podia
+// alterar preços). Edição volta com login do dono no E2.
+// Decisão: docs/decisoes/2026-08-09-v1.1-rls-anon-minimo.md
 export default function Servicos() {
   const [servicos, setServicos] = useState(null);
-  const [editando, setEditando] = useState(null); // id em edição
-  const [rascunho, setRascunho] = useState({});
   const [erro, setErro] = useState("");
 
-  async function carregar() {
-    try {
-      setServicos(await carregarServicos(true));
-    } catch (e) {
-      setErro(String(e.message || e));
-    }
-  }
   useEffect(() => {
-    carregar();
+    carregarServicos(true)
+      .then(setServicos)
+      .catch((e) => setErro(String(e.message || e)));
   }, []);
-
-  function abrirEdicao(s) {
-    setEditando(s.id);
-    setRascunho({ preco_usd: s.preco_usd, duracao_min: s.duracao_min });
-  }
-
-  async function salvar(s) {
-    setErro("");
-    const { error } = await supabase
-      .from("clinicnow_servicos")
-      .update({
-        preco_usd: Number(rascunho.preco_usd),
-        duracao_min: Number(rascunho.duracao_min),
-      })
-      .eq("id", s.id);
-    if (error) return setErro(error.message);
-    setEditando(null);
-    invalidarServicos();
-    carregar();
-  }
 
   return (
     <div className="painel">
@@ -63,49 +40,18 @@ export default function Servicos() {
                   </div>
                 </div>
               </div>
-              {editando === s.id ? (
-                <div className="servico-edicao">
-                  <label className="sub">
-                    US${" "}
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      className="input-mini"
-                      value={rascunho.preco_usd}
-                      onChange={(e) => setRascunho({ ...rascunho, preco_usd: e.target.value })}
-                    />
-                  </label>
-                  <label className="sub">
-                    min{" "}
-                    <input
-                      type="number"
-                      min="5"
-                      step="5"
-                      className="input-mini"
-                      value={rascunho.duracao_min}
-                      onChange={(e) => setRascunho({ ...rascunho, duracao_min: e.target.value })}
-                    />
-                  </label>
-                  <button className="botao-mini" onClick={() => salvar(s)}>✓</button>
-                  <button className="botao-mini botao-leve" onClick={() => setEditando(null)}>✕</button>
-                </div>
-              ) : (
-                <div className="servico-preco">
-                  <strong>{fmtUSD(s.preco_usd)}</strong>
-                  <span className="sub">{s.duracao_min} min</span>
-                  <button className="botao-mini botao-leve" onClick={() => abrirEdicao(s)}>
-                    Editar
-                  </button>
-                </div>
-              )}
+              <div className="servico-preco">
+                <strong>{fmtUSD(s.preco_usd)}</strong>
+                <span className="sub">{s.duracao_min} min</span>
+              </div>
             </li>
           ))}
         </ul>
       )}
       <p className="sub nota">
-        Alterou um preço? A Emily usa o catálogo do prompt dela — rode{" "}
-        <code>npm run emily:update</code> para sincronizar.
+        🔒 Por segurança, o catálogo é somente leitura nesta versão: alterar preços vai exigir o
+        login do dono (E2 do backlog). Até lá, mudanças de preço são feitas direto no banco e
+        sincronizadas na Emily com <code>npm run emily:update</code>.
       </p>
     </div>
   );

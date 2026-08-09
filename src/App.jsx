@@ -34,21 +34,28 @@ export default function App() {
   return (
     <div className="layout">
       <header className="topbar">
-        <button className="hamburguer" onClick={() => setMenuAberto((v) => !v)} aria-label="Menu">
+        <button
+          className="hamburguer"
+          onClick={() => setMenuAberto((v) => !v)}
+          aria-label="Abrir menu de módulos"
+          aria-expanded={menuAberto}
+        >
           ☰
         </button>
         <span className="logo">ClinicNow</span>
         <span className="clinica">Clínica Demonstração · v1</span>
       </header>
       <div className="corpo">
-        <nav className={menuAberto ? "sidebar aberta" : "sidebar"}>
+        <nav className={menuAberto ? "sidebar aberta" : "sidebar"} aria-label="Módulos">
           {MODULOS.map((m) => (
             <button
               key={m.id}
               className={tab === m.id ? "item-menu ativo" : "item-menu"}
               onClick={() => irPara(m.id)}
+              aria-label={m.embreve ? `${m.label} (em breve)` : m.label}
+              aria-current={tab === m.id ? "page" : undefined}
             >
-              <span className="item-icone">{m.icon}</span>
+              <span className="item-icone" aria-hidden="true">{m.icon}</span>
               <span className="item-rotulo">{m.label}</span>
               {m.embreve && <span className="ponto-embreve" title="em breve" />}
             </button>

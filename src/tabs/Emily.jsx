@@ -3,6 +3,7 @@ import { Conversation } from "@elevenlabs/client";
 import { supabase, carregarServicos, acharServico, fmtUSD } from "../supabase.js";
 import { formatarInicio } from "./Agenda.jsx";
 import { criarEventoGoogle, TOKEN_SERVER } from "../gcal.js";
+import { buscarConflitos, faixaHorario } from "../conflitos.js";
 
 // A Emily marca propostas de agendamento com a linha:
 // [PROPOSTA] paciente=<nome>; servico=<serviço>; inicio=YYYY-MM-DDTHH:MM
@@ -101,11 +102,30 @@ export default function Emily({ onAgendou }) {
     setTexto("");
   }
 
-  async function confirmarProposta(idx) {
+  async function confirmarProposta(idx, forcar = false) {
     const msg = mensagens[idx];
     if (!msg?.proposta || msg.confirmada) return;
     const { paciente, servico, inicio } = msg.proposta;
     const svc = acharServico(servicos, servico);
+    // Anti-overbooking: mesma checagem da Agenda antes de gravar
+    if (!forcar) {
+      try {
+        const lista = await buscarConflitos({
+          inicio,
+          duracaoMin: svc?.duracao_min || 60,
+          servicos,
+        });
+        if (lista.length) {
+          setMensagens((prev) =>
+            prev.map((m, i) => (i === idx ? { ...m, conflitos: lista } : m))
+          );
+          return;
+        }
+      } catch (e) {
+        setErro(String(e?.message || e));
+        return;
+      }
+    }
     const { data, error } = await supabase
       .from("clinicnow_consultas")
       .insert({
@@ -121,7 +141,7 @@ export default function Emily({ onAgendou }) {
       .single();
     if (error) return setErro(error.message);
     setMensagens((prev) =>
-      prev.map((m, i) => (i === idx ? { ...m, confirmada: true } : m))
+      prev.map((m, i) => (i === idx ? { ...m, confirmada: true, conflitos: null } : m))
     );
     onAgendou?.();
     const g = await criarEventoGoogle(data, svc);
@@ -166,6 +186,23 @@ export default function Emily({ onAgendou }) {
                   </div>
                   {m.confirmada ? (
                     <span className="selo selo-emily">agendado ✓</span>
+                  ) : m.conflitos ? (
+                    <div className="conflito" role="alert">
+                      <strong>⚠️ Conflito de horário</strong>
+                      {m.conflitos.map((c) => (
+                        <p key={c.id} className="sub">
+                          Já existe <strong>{c.servico}</strong> — {c.paciente_nome} (
+                          {faixaHorario(c, servicos)})
+                        </p>
+                      ))}
+                      <p className="sub">Peça outro horário à Emily, ou confirme mesmo assim:</p>
+                      <button
+                        className="botao-leve"
+                        onClick={() => confirmarProposta(i, true)}
+                      >
+                        Confirmar mesmo assim
+                      </button>
+                    </div>
                   ) : (
                     <button className="botao-confirmar" onClick={() => confirmarProposta(i)}>
                       ✓ Confirmar agendamento

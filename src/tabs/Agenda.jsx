@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase, carregarServicos, fmtUSD, corDoServico } from "../supabase.js";
 import { criarEventoGoogle, baixarICS } from "../gcal.js";
+import { buscarConflitos, colunasDoDia, faixaHorario } from "../conflitos.js";
 
 export function formatarInicio(iso) {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -188,11 +189,16 @@ export default function Agenda() {
                       }}
                     />
                   ))}
-                  {consultasDoDia(dia).map((c) => {
+                  {(() => {
+                    const doDia = consultasDoDia(dia);
+                    // Eventos simultâneos dividem a coluna lado a lado (estilo Google Calendar)
+                    const layout = colunasDoDia(doDia, servicos);
+                    return doDia.map((c) => {
                     const ini = new Date(c.inicio);
                     const minutos = (ini.getHours() - HORA_INI) * 60 + ini.getMinutes();
                     if (minutos < 0 || minutos >= (HORA_FIM - HORA_INI) * 60) return null;
                     const dur = duracaoMin(c);
+                    const { col, cols } = layout.get(c.id) || { col: 0, cols: 1 };
                     return (
                       <button
                         key={c.id}
@@ -200,6 +206,9 @@ export default function Agenda() {
                         style={{
                           top: (minutos / 60) * ALTURA_HORA + 1,
                           height: Math.max((dur / 60) * ALTURA_HORA - 3, 22),
+                          left: `calc(${(col * 100) / cols}% + 3px)`,
+                          width: `calc(${100 / cols}% - 6px)`,
+                          right: "auto",
                           background: corDoServico(servicos, c),
                         }}
                         onClick={(e) => {
@@ -215,7 +224,8 @@ export default function Agenda() {
                         <span className="bloco-servico">{c.servico}</span>
                       </button>
                     );
-                  })}
+                    });
+                  })()}
                 </div>
               );
             })}
@@ -243,24 +253,66 @@ export default function Agenda() {
   );
 }
 
+// Aviso de sobreposição de horário: mostra os conflitos e exige escolha explícita
+// (outro horário, ou confirmar o encaixe mesmo assim). Nunca grava em silêncio.
+function AvisoConflito({ conflitos, servicos, onOutroHorario, onForcar, salvando }) {
+  return (
+    <div className="conflito" role="alert">
+      <strong>⚠️ Conflito de horário</strong>
+      {conflitos.map((c) => (
+        <p key={c.id} className="sub">
+          Já existe <strong>{c.servico}</strong> — {c.paciente_nome} ({faixaHorario(c, servicos)})
+        </p>
+      ))}
+      <div className="modal-acoes">
+        <button type="button" onClick={onOutroHorario}>
+          Escolher outro horário
+        </button>
+        <button type="button" className="botao-leve" onClick={onForcar} disabled={salvando}>
+          {salvando ? "Agendando…" : "Agendar mesmo assim"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
   const [paciente, setPaciente] = useState("");
   const [servicoId, setServicoId] = useState(servicos[0]?.id || "");
   const [inicioLocal, setInicioLocal] = useState(paraInputLocal(inicio));
   const [erro, setErro] = useState("");
+  const [conflitos, setConflitos] = useState(null);
   const [salvando, setSalvando] = useState(false);
+  const inputInicioRef = React.useRef(null);
   const svc = servicos.find((s) => s.id === servicoId);
 
-  async function submeter(e) {
-    e.preventDefault();
+  async function submeter(e, forcar = false) {
+    e?.preventDefault();
     setSalvando(true);
     setErro("");
     try {
+      if (!forcar) {
+        const lista = await buscarConflitos({
+          inicio: new Date(inicioLocal),
+          duracaoMin: svc?.duracao_min || 60,
+          servicos,
+        });
+        if (lista.length) {
+          setConflitos(lista);
+          setSalvando(false);
+          return;
+        }
+      }
       await onSalvar({ paciente_nome: paciente.trim(), servico_id: servicoId, inicioLocal });
     } catch (err) {
       setErro(String(err.message || err));
       setSalvando(false);
     }
+  }
+
+  function escolherOutroHorario() {
+    setConflitos(null);
+    inputInicioRef.current?.focus();
   }
 
   return (
@@ -281,7 +333,13 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
               <option key={p.id} value={p.nome} />
             ))}
           </datalist>
-          <select value={servicoId} onChange={(e) => setServicoId(e.target.value)}>
+          <select
+            value={servicoId}
+            onChange={(e) => {
+              setServicoId(e.target.value);
+              setConflitos(null);
+            }}
+          >
             {servicos.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.nome} — {fmtUSD(s.preco_usd)} · {s.duracao_min} min
@@ -290,8 +348,12 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
           </select>
           <input
             type="datetime-local"
+            ref={inputInicioRef}
             value={inicioLocal}
-            onChange={(e) => setInicioLocal(e.target.value)}
+            onChange={(e) => {
+              setInicioLocal(e.target.value);
+              setConflitos(null);
+            }}
             required
           />
           {svc && (
@@ -300,14 +362,24 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
             </p>
           )}
           {erro && <p className="erro">{erro}</p>}
-          <div className="modal-acoes">
-            <button type="button" className="botao-leve" onClick={onFechar}>
-              Fechar
-            </button>
-            <button type="submit" disabled={salvando}>
-              {salvando ? "Agendando…" : "Agendar"}
-            </button>
-          </div>
+          {conflitos ? (
+            <AvisoConflito
+              conflitos={conflitos}
+              servicos={servicos}
+              onOutroHorario={escolherOutroHorario}
+              onForcar={() => submeter(null, true)}
+              salvando={salvando}
+            />
+          ) : (
+            <div className="modal-acoes">
+              <button type="button" className="botao-leve" onClick={onFechar}>
+                Fechar
+              </button>
+              <button type="submit" disabled={salvando}>
+                {salvando ? "Verificando…" : "Agendar"}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>
@@ -320,19 +392,39 @@ function ModalDetalhe({ consulta, servicos, onFechar, onSalvar }) {
   const [tip, setTip] = useState(consulta.tip_usd || 0);
   const [status, setStatus] = useState(consulta.status || "agendada");
   const [erro, setErro] = useState("");
+  const [conflitos, setConflitos] = useState(null);
   const [salvando, setSalvando] = useState(false);
+  const inputInicioRef = React.useRef(null);
   const svc = servicos.find((s) => s.id === servicoId);
 
-  async function submeter(e) {
-    e.preventDefault();
+  async function submeter(e, forcar = false) {
+    e?.preventDefault();
     setSalvando(true);
     setErro("");
     try {
+      if (!forcar && status !== "cancelada") {
+        const lista = await buscarConflitos({
+          inicio: new Date(inicioLocal),
+          duracaoMin: svc?.duracao_min || 60,
+          servicos,
+          ignorarId: consulta.id,
+        });
+        if (lista.length) {
+          setConflitos(lista);
+          setSalvando(false);
+          return;
+        }
+      }
       await onSalvar(consulta, { servico_id: servicoId, inicioLocal, tip_usd: tip, status });
     } catch (err) {
       setErro(String(err.message || err));
       setSalvando(false);
     }
+  }
+
+  function escolherOutroHorario() {
+    setConflitos(null);
+    inputInicioRef.current?.focus();
   }
 
   return (
@@ -344,7 +436,13 @@ function ModalDetalhe({ consulta, servicos, onFechar, onSalvar }) {
           {consulta.google_event_id ? "no Google Agenda ✓" : "fora do Google Agenda"}
         </p>
         <form className="formulario" onSubmit={submeter}>
-          <select value={servicoId} onChange={(e) => setServicoId(e.target.value)}>
+          <select
+            value={servicoId}
+            onChange={(e) => {
+              setServicoId(e.target.value);
+              setConflitos(null);
+            }}
+          >
             {!consulta.servico_id && <option value="">{consulta.servico} (catálogo antigo)</option>}
             {servicos.map((s) => (
               <option key={s.id} value={s.id}>
@@ -354,8 +452,12 @@ function ModalDetalhe({ consulta, servicos, onFechar, onSalvar }) {
           </select>
           <input
             type="datetime-local"
+            ref={inputInicioRef}
             value={inicioLocal}
-            onChange={(e) => setInicioLocal(e.target.value)}
+            onChange={(e) => {
+              setInicioLocal(e.target.value);
+              setConflitos(null);
+            }}
           />
           <label className="campo-rotulado">
             <span className="sub">Gorjeta (US$)</span>
@@ -380,22 +482,33 @@ function ModalDetalhe({ consulta, servicos, onFechar, onSalvar }) {
             <strong>{fmtUSD(tip || 0)}</strong>
           </p>
           {erro && <p className="erro">{erro}</p>}
-          <div className="modal-acoes">
-            <button
-              type="button"
-              className="botao-leve"
-              onClick={() => baixarICS(consulta, svc)}
-              title="Baixar arquivo de calendário (.ics)"
-            >
-              📆 .ics
-            </button>
-            <button type="button" className="botao-leve" onClick={onFechar}>
-              Fechar
-            </button>
-            <button type="submit" disabled={salvando}>
-              {salvando ? "Salvando…" : "Salvar"}
-            </button>
-          </div>
+          {conflitos ? (
+            <AvisoConflito
+              conflitos={conflitos}
+              servicos={servicos}
+              onOutroHorario={escolherOutroHorario}
+              onForcar={() => submeter(null, true)}
+              salvando={salvando}
+            />
+          ) : (
+            <div className="modal-acoes">
+              <button
+                type="button"
+                className="botao-leve"
+                onClick={() => baixarICS(consulta, svc)}
+                title="Baixar arquivo de calendário (.ics)"
+                aria-label="Baixar arquivo de calendário (.ics)"
+              >
+                📆 .ics
+              </button>
+              <button type="button" className="botao-leve" onClick={onFechar}>
+                Fechar
+              </button>
+              <button type="submit" disabled={salvando}>
+                {salvando ? "Salvando…" : "Salvar"}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>
