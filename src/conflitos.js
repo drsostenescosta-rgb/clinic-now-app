@@ -2,25 +2,36 @@
 // Fonte de verdade: o banco — a checagem consulta o Supabase na hora de salvar,
 // para pegar conflitos mesmo fora da semana carregada na grade.
 import { supabase } from "./supabase.js";
+import { fimDaConsulta } from "./scheduling.js";
 
 export function duracaoDaConsulta(consulta, servicos) {
   const s = servicos.find((x) => x.id === consulta.servico_id);
-  return s?.duracao_min || 60;
+  return consulta.duracao_snapshot_min ?? s?.duracao_min ?? 60;
+}
+
+export function bufferDaConsulta(consulta, servicos) {
+  const s = servicos.find((x) => x.id === consulta.servico_id);
+  return consulta.buffer_snapshot_min ?? s?.buffer_min ?? 0;
+}
+
+export function fimEfetivoDaConsulta(consulta, servicos) {
+  const s = servicos.find((x) => x.id === consulta.servico_id);
+  return new Date(fimDaConsulta(consulta, s));
 }
 
 export function faixaHorario(consulta, servicos) {
   const ini = new Date(consulta.inicio);
-  const fim = new Date(ini.getTime() + duracaoDaConsulta(consulta, servicos) * 60000);
+  const fim = fimEfetivoDaConsulta(consulta, servicos);
   const f = (d) => d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   return `${f(ini)}–${f(fim)}`;
 }
 
 // Devolve as consultas ativas (não canceladas) que sobrepõem [inicio, inicio+duracaoMin).
 // ignorarId: ao editar, a própria consulta não conta como conflito.
-export async function buscarConflitos({ inicio, duracaoMin, servicos, ignorarId = null }) {
+export async function buscarConflitos({ inicio, duracaoMin, bufferMin = 0, servicos, ignorarId = null }) {
   const ini = inicio.getTime();
   if (isNaN(ini)) return [];
-  const fim = ini + duracaoMin * 60000;
+  const fim = ini + (duracaoMin + bufferMin) * 60000;
   // Janela: consultas que começam até 6h antes ainda podem estar em andamento
   // (maior serviço do catálogo tem 75 min — 6h dá folga para catálogos futuros).
   const { data, error } = await supabase
@@ -33,7 +44,7 @@ export async function buscarConflitos({ inicio, duracaoMin, servicos, ignorarId 
   return (data || []).filter((c) => {
     if (ignorarId && c.id === ignorarId) return false;
     const cIni = new Date(c.inicio).getTime();
-    const cFim = cIni + duracaoDaConsulta(c, servicos) * 60000;
+    const cFim = fimEfetivoDaConsulta(c, servicos).getTime();
     return cIni < fim && ini < cFim;
   });
 }
@@ -44,7 +55,7 @@ export function colunasDoDia(consultas, servicos) {
   const eventos = consultas
     .map((c) => {
       const ini = new Date(c.inicio).getTime();
-      return { id: c.id, ini, fim: ini + duracaoDaConsulta(c, servicos) * 60000 };
+      return { id: c.id, ini, fim: fimEfetivoDaConsulta(c, servicos).getTime() };
     })
     .sort((a, b) => a.ini - b.ini || a.fim - b.fim);
 

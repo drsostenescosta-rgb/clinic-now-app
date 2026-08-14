@@ -1,18 +1,20 @@
 # CLAUDE.md — clinic-now-app
 
-App único do ClinicNow (React+Vite PWA, pt-BR). **v1**: sidebar esquerda com todos os módulos; funcionam Agenda (semanal estilo Google Calendar) · Emily · Pacientes · Serviços · Financeiro · Configurações; Crescimento/Lia/Vitrine são "em breve". Agenda é a tela principal. **Todos os valores em DÓLAR (US$).**
+Fundação local E2 do ClinicNow (React + Vite, pt-BR). O único estado comprovado é `synthetic`.
 
-## Stack e comandos
+## Comandos e limites
 
-- React 18 + Vite (porta **5190**), sem TypeScript por ora. `npm run dev` sobe **dois** processos via concurrently: `server.mjs` (porta **4790**: signed URL ElevenLabs + `/gcal-status` + `/gcal-event` via Composio CLI) e o Vite.
-- Supabase projeto **sosmed** (`yaqphldowpshhrtvvfaq`, sa-east-1). Tabelas deste app: `clinicnow_pacientes` (com `drive_url`), `clinicnow_consultas` (com `servico_id` FK, `preco_usd`, `tip_usd`, `google_event_id`, `status`), `clinicnow_servicos` (catálogo em USD — fonte de verdade de preços). RLS ligada; anon: select/insert/update nessas três (sem delete). Chave publishable no `.env` (`VITE_SUPABASE_*`).
-- Emily: agente ElevenLabs "Emily — ClinicNow Recepção" (`emily-agent-id.txt`), chat de TEXTO via `@elevenlabs/client` (`textOnly: true`). Propostas: linha `[PROPOSTA] paciente=…; servico=…; inicio=…` → botão confirmar → insert em `clinicnow_consultas` com preço do catálogo → tentativa best-effort de evento no Google Agenda (fallback .ics).
-- **Mudou preço na aba Serviços? Rode `npm run emily:update`** — reescreve o prompt do agente lendo `clinicnow_servicos`.
-- Google Agenda: precisa de `composio link googlecalendar` ativo (ver Configurações no app e `docs/decisoes/2026-08-08-v1-google-agenda-fallback-ics.md`).
+- `npm run dev` e `npm run dev:synthetic`: somente Vite, dados em `localStorage`, aliases `Paciente Demo NN`.
+- `npm test` e `npm run build`: validação local.
+- `npm run dev:owner`: reservado para depois das três migrations E2 aplicadas e verificadas. Não há evidência disso hoje.
+- `server.mjs` não implementa integrações e devolve 403 por padrão também em owner; `dev:owner` sobe só Vite.
 
-## O que NÃO fazer
+## Segurança
 
-- Não colocar `ELEVENLABS_API_KEY` em código de navegador — só `server.mjs` lê o `.env`.
-- Não usar dados reais de pacientes: v1 é 100% sintético (LGPD; E2 Auth+RLS é bloqueante antes de qualquer dado real).
-- Não construir os módulos "em breve" sem decisão de fase (roteiro em `docs/arquitetura.md` §8).
-- Preços: fonte única é a tabela `clinicnow_servicos`; nunca hardcodar catálogo no app, e sincronizar a Emily via `npm run emily:update` após mudanças.
+- Não usar nomes, telefone, Drive, conversas, anamnese ou qualquer dado real no modo sintético.
+- Não aplicar migrations, conectar Supabase, ElevenLabs, Composio, Google, WhatsApp ou Instagram sem autorização e postflight próprios.
+- Não alegar RLS/live: os artefatos em `supabase/e2-staged/` e `supabase/admin/` não foram executados.
+- Criação de paciente e criação/edição de consulta passam por RPCs; não reintroduzir grants diretos de INSERT/UPDATE ao navegador.
+- Nunca permitir bypass de conflito. Snapshot de preço/duração/término deriva do serviço.
+
+Leia `docs/e2-owner-mode-runbook.md` e `docs/arquitetura.md` antes de modificar o modo owner. Os documentos de decisão de 08–09/08 são históricos.

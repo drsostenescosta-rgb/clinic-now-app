@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { supabase, carregarServicos, fmtUSD, corDoServico } from "../supabase.js";
-import { criarEventoGoogle, baixarICS } from "../gcal.js";
+import { MODO, supabase, carregarServicos, fmtUSD, corDoServico, reservarConsulta, atualizarConsulta } from "../supabase.js";
+import { baixarICS } from "../gcal.js";
 import { buscarConflitos, colunasDoDia, faixaHorario } from "../conflitos.js";
+import { EXEMPLO_ALIAS_SINTETICO, validarAliasSintetico } from "../syntheticPolicy.js";
 
 export function formatarInicio(iso) {
   return new Date(iso).toLocaleString("pt-BR", {
@@ -84,50 +85,27 @@ export default function Agenda() {
   }
   function duracaoMin(c) {
     const s = servicos.find((x) => x.id === c.servico_id);
-    return s?.duracao_min || 60;
+    const fim = new Date(c.termina_em).getTime();
+    const ini = new Date(c.inicio).getTime();
+    if (Number.isFinite(fim) && fim > ini) return (fim - ini) / 60000;
+    return (c.duracao_snapshot_min ?? s?.duracao_min ?? 60) + (c.buffer_snapshot_min ?? s?.buffer_min ?? 0);
   }
 
   async function salvarNova({ paciente_nome, servico_id, inicioLocal }) {
+    if (MODO === "synthetic" && !validarAliasSintetico(paciente_nome)) throw new Error(`Use somente alias artificial, por exemplo: ${EXEMPLO_ALIAS_SINTETICO}.`);
     const svc = servicos.find((s) => s.id === servico_id);
-    const linha = {
-      paciente_nome,
-      servico: svc?.nome || "Consulta",
-      servico_id: servico_id || null,
-      preco_usd: svc ? svc.preco_usd : null,
-      inicio: new Date(inicioLocal).toISOString(),
-      origem: "manual",
-      status: "agendada",
-    };
-    const { data, error } = await supabase
-      .from("clinicnow_consultas")
-      .insert(linha)
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
+    if (!svc) throw new Error("Selecione um serviço válido.");
+    const data = await reservarConsulta({ paciente_nome, servico_id, inicio: inicioLocal, origem: "manual" });
     setNovo(null);
     carregar();
-    const g = await criarEventoGoogle(data, svc);
-    setAviso(
-      g.ok
-        ? "Consulta agendada e enviada ao Google Agenda ✓"
-        : "Consulta agendada. Google Agenda não conectado — use o .ics no detalhe da consulta."
-    );
+    setAviso("Consulta reservada sem conflito. Nenhuma integração externa foi acionada.");
     setTimeout(() => setAviso(""), 6000);
-    if (g.ok) carregar();
   }
 
   async function salvarDetalhe(c, campos) {
     const svc = servicos.find((s) => s.id === campos.servico_id);
-    const upd = {
-      servico_id: campos.servico_id || null,
-      servico: svc?.nome || c.servico,
-      preco_usd: svc ? svc.preco_usd : c.preco_usd,
-      inicio: new Date(campos.inicioLocal).toISOString(),
-      tip_usd: campos.tip_usd === "" ? 0 : Number(campos.tip_usd),
-      status: campos.status,
-    };
-    const { error } = await supabase.from("clinicnow_consultas").update(upd).eq("id", c.id);
-    if (error) throw new Error(error.message);
+    if (!svc) throw new Error("Selecione um serviço válido.");
+    await atualizarConsulta({ id: c.id, servico_id: svc.id, inicio: campos.inicioLocal, tip_usd: campos.tip_usd, status: campos.status });
     setDetalhe(null);
     carregar();
   }
@@ -145,6 +123,7 @@ export default function Agenda() {
           <span className="agenda-rotulo">{rotuloSemana}</span>
         </div>
       </div>
+      {MODO === "synthetic" && <p className="aviso">Modo sintético: não digite nomes ou dados reais. Use {EXEMPLO_ALIAS_SINTETICO}.</p>}
       {erro && <p className="erro">{erro}</p>}
       {aviso && <p className="aviso">{aviso}</p>}
       {consultas === null ? (
@@ -253,9 +232,8 @@ export default function Agenda() {
   );
 }
 
-// Aviso de sobreposição de horário: mostra os conflitos e exige escolha explícita
-// (outro horário, ou confirmar o encaixe mesmo assim). Nunca grava em silêncio.
-function AvisoConflito({ conflitos, servicos, onOutroHorario, onForcar, salvando }) {
+// Conflito nunca pode ser forçado: a pessoa deve escolher outro horário.
+function AvisoConflito({ conflitos, servicos, onOutroHorario }) {
   return (
     <div className="conflito" role="alert">
       <strong>⚠️ Conflito de horário</strong>
@@ -267,9 +245,6 @@ function AvisoConflito({ conflitos, servicos, onOutroHorario, onForcar, salvando
       <div className="modal-acoes">
         <button type="button" onClick={onOutroHorario}>
           Escolher outro horário
-        </button>
-        <button type="button" className="botao-leve" onClick={onForcar} disabled={salvando}>
-          {salvando ? "Agendando…" : "Agendar mesmo assim"}
         </button>
       </div>
     </div>
@@ -286,15 +261,16 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
   const inputInicioRef = React.useRef(null);
   const svc = servicos.find((s) => s.id === servicoId);
 
-  async function submeter(e, forcar = false) {
+  async function submeter(e) {
     e?.preventDefault();
     setSalvando(true);
     setErro("");
     try {
-      if (!forcar) {
+      {
         const lista = await buscarConflitos({
           inicio: new Date(inicioLocal),
           duracaoMin: svc?.duracao_min || 60,
+          bufferMin: svc?.buffer_min ?? 0,
           servicos,
         });
         if (lista.length) {
@@ -321,7 +297,7 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
         <h3>Nova consulta</h3>
         <form className="formulario" onSubmit={submeter}>
           <input
-            placeholder="Nome do paciente"
+            placeholder={MODO === "synthetic" ? EXEMPLO_ALIAS_SINTETICO : "Nome do paciente"}
             list="lista-pacientes"
             value={paciente}
             onChange={(e) => setPaciente(e.target.value)}
@@ -342,7 +318,7 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
           >
             {servicos.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.nome} — {fmtUSD(s.preco_usd)} · {s.duracao_min} min
+                {s.nome} — {fmtUSD(s.preco_usd)} · {s.duracao_min} min + buffer {s.buffer_min ?? "pendente"}
               </option>
             ))}
           </select>
@@ -358,7 +334,7 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
           />
           {svc && (
             <p className="sub">
-              Valor: <strong>{fmtUSD(svc.preco_usd)}</strong> · {svc.duracao_min} min
+              Valor: <strong>{fmtUSD(svc.preco_usd)}</strong> · {svc.duracao_min} min + buffer {svc.buffer_min ?? "pendente"} min
             </p>
           )}
           {erro && <p className="erro">{erro}</p>}
@@ -367,8 +343,6 @@ function ModalNova({ inicio, servicos, pacientes, onFechar, onSalvar }) {
               conflitos={conflitos}
               servicos={servicos}
               onOutroHorario={escolherOutroHorario}
-              onForcar={() => submeter(null, true)}
-              salvando={salvando}
             />
           ) : (
             <div className="modal-acoes">
@@ -397,15 +371,16 @@ function ModalDetalhe({ consulta, servicos, onFechar, onSalvar }) {
   const inputInicioRef = React.useRef(null);
   const svc = servicos.find((s) => s.id === servicoId);
 
-  async function submeter(e, forcar = false) {
+  async function submeter(e) {
     e?.preventDefault();
     setSalvando(true);
     setErro("");
     try {
-      if (!forcar && status !== "cancelada") {
+      if (status !== "cancelada") {
         const lista = await buscarConflitos({
           inicio: new Date(inicioLocal),
           duracaoMin: svc?.duracao_min || 60,
+          bufferMin: svc?.buffer_min ?? 0,
           servicos,
           ignorarId: consulta.id,
         });
@@ -446,7 +421,7 @@ function ModalDetalhe({ consulta, servicos, onFechar, onSalvar }) {
             {!consulta.servico_id && <option value="">{consulta.servico} (catálogo antigo)</option>}
             {servicos.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.nome} — {fmtUSD(s.preco_usd)} · {s.duracao_min} min
+                {s.nome} — {fmtUSD(s.preco_usd)} · {s.duracao_min} min + buffer {s.buffer_min ?? "pendente"}
               </option>
             ))}
           </select>
@@ -487,8 +462,6 @@ function ModalDetalhe({ consulta, servicos, onFechar, onSalvar }) {
               conflitos={conflitos}
               servicos={servicos}
               onOutroHorario={escolherOutroHorario}
-              onForcar={() => submeter(null, true)}
-              salvando={salvando}
             />
           ) : (
             <div className="modal-acoes">

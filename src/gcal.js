@@ -1,50 +1,23 @@
-// Integração Google Agenda (best-effort via token-server → Composio) + fallback .ics
-import { supabase } from "./supabase.js";
-
+// Integração externa desativada na E2; somente o arquivo .ics local permanece.
 export const TOKEN_SERVER = "http://localhost:4790";
 
 export async function statusGoogleAgenda() {
-  try {
-    const r = await fetch(`${TOKEN_SERVER}/gcal-status`);
-    if (!r.ok) return { connected: false };
-    return await r.json();
-  } catch {
-    return { connected: false };
-  }
+  return { connected: false, reason: "integração fora da E2" };
 }
 
-// Tenta criar o evento no Google Agenda e gravar o google_event_id na consulta.
-// NUNCA lança: devolve { ok, event_id? , reason? } — o chamador decide o fallback.
+// Stub explícito: uma fase futura deverá implementar autenticação e autorização.
 export async function criarEventoGoogle(consulta, servico) {
-  try {
-    const r = await fetch(`${TOKEN_SERVER}/gcal-event`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        summary: `${consulta.servico} — ${consulta.paciente_nome}`,
-        description: `Consulta ClinicNow (${consulta.origem}).`,
-        start_iso: consulta.inicio,
-        duration_min: servico?.duracao_min || 60,
-      }),
-    });
-    const out = await r.json();
-    if (out.ok && out.event_id) {
-      await supabase
-        .from("clinicnow_consultas")
-        .update({ google_event_id: out.event_id })
-        .eq("id", consulta.id);
-      return out;
-    }
-    return { ok: false, reason: out.reason || "sem resposta do Composio" };
-  } catch (e) {
-    return { ok: false, reason: String(e?.message || e) };
-  }
+  void consulta; void servico;
+  return { ok: false, reason: "integração fora da E2" };
 }
 
 // Fallback: arquivo .ics da consulta (funciona sem nenhuma integração)
 export function baixarICS(consulta, servico) {
   const ini = new Date(consulta.inicio);
-  const fim = new Date(ini.getTime() + (servico?.duracao_min || 60) * 60000);
+  const fimPersistido = new Date(consulta.termina_em);
+  const fim = Number.isFinite(fimPersistido.getTime()) && fimPersistido > ini
+    ? fimPersistido
+    : new Date(ini.getTime() + ((consulta.duracao_snapshot_min ?? servico?.duracao_min ?? 60) + (consulta.buffer_snapshot_min ?? servico?.buffer_min ?? 0)) * 60000);
   const fmt = (d) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const ics = [
     "BEGIN:VCALENDAR",

@@ -1,0 +1,80 @@
+-- E2.2 BOOTSTRAP/BACKFILL para o legado single-tenant.
+-- Runner psql manual. Exige -v owner_id=... -v clinic_name=...; não editar o arquivo.
+\set ON_ERROR_STOP on
+\if :{?owner_id}
+\else
+  \echo 'ERRO: informe -v owner_id=UUID'
+  \quit
+\endif
+\if :{?clinic_name}
+\else
+  \echo 'ERRO: informe -v clinic_name=NOME'
+  \quit
+\endif
+begin;
+select set_config('clinicnow.bootstrap_owner_id', :'owner_id', true);
+select set_config('clinicnow.bootstrap_clinic_name', :'clinic_name', true);
+
+do $$
+declare v_owner uuid := current_setting('clinicnow.bootstrap_owner_id')::uuid;
+begin
+  if not exists (select 1 from auth.users where id = v_owner) then
+    raise exception 'Owner não existe em auth.users.';
+  end if;
+  if nullif(trim(current_setting('clinicnow.bootstrap_clinic_name')), '') is null then raise exception 'clinic_name vazio.'; end if;
+end $$;
+
+insert into public.clinicnow_clinicas(owner_id, nome)
+values (current_setting('clinicnow.bootstrap_owner_id')::uuid, current_setting('clinicnow.bootstrap_clinic_name'))
+on conflict (owner_id) do update set nome = excluded.nome;
+
+-- Este backfill é deliberadamente explícito: todo o legado atual deve pertencer
+-- à única dona confirmada. Não execute em banco multi-tenant.
+update public.clinicnow_servicos s set clinic_id = c.id
+from public.clinicnow_clinicas c where c.owner_id = current_setting('clinicnow.bootstrap_owner_id')::uuid and s.clinic_id is null;
+update public.clinicnow_pacientes p set clinic_id = c.id
+from public.clinicnow_clinicas c where c.owner_id = current_setting('clinicnow.bootstrap_owner_id')::uuid and p.clinic_id is null;
+update public.clinicnow_consultas q set clinic_id = c.id
+from public.clinicnow_clinicas c where c.owner_id = current_setting('clinicnow.bootstrap_owner_id')::uuid and q.clinic_id is null;
+
+-- Snapshot sempre deriva do serviço da mesma clínica; não usa duração arbitrária.
+do $$ begin
+  if exists (select 1 from public.clinicnow_servicos where buffer_min is null or buffer_min < 0) then
+    raise exception 'Defina buffer_min explícito (>=0) para CADA serviço após obter a resposta da dona.';
+  end if;
+end $$;
+update public.clinicnow_consultas q
+set servico = s.nome, preco_usd = s.preco_usd,
+    duracao_snapshot_min = s.duracao_min,
+    buffer_snapshot_min = s.buffer_min,
+    termina_em = q.inicio + make_interval(mins => s.duracao_min + s.buffer_min)
+from public.clinicnow_servicos s
+where s.id = q.servico_id and s.clinic_id = q.clinic_id;
+
+do $$ begin
+  if exists (
+    select 1 from (
+      select clinic_id from public.clinicnow_servicos union all
+      select clinic_id from public.clinicnow_pacientes union all
+      select clinic_id from public.clinicnow_consultas
+    ) x where x.clinic_id is distinct from (select id from public.clinicnow_clinicas where owner_id=current_setting('clinicnow.bootstrap_owner_id')::uuid)
+  ) then raise exception 'Há linha pertencente a outra clínica; este backfill single-tenant não pode prosseguir.'; end if;
+  if exists (select 1 from public.clinicnow_servicos where clinic_id is null)
+    or exists (select 1 from public.clinicnow_pacientes where clinic_id is null)
+    or exists (select 1 from public.clinicnow_consultas where clinic_id is null) then
+    raise exception 'Backfill incompleto: há linhas sem clinic_id.';
+  end if;
+  if exists (select 1 from public.clinicnow_consultas q where q.servico_id is null or q.duracao_snapshot_min is null or q.duracao_snapshot_min <= 0 or q.buffer_snapshot_min is null or q.buffer_snapshot_min < 0 or q.termina_em is null or not exists (select 1 from public.clinicnow_servicos s where s.id=q.servico_id and s.clinic_id=q.clinic_id)) then
+    raise exception 'Consulta órfã: associe um serviço válido antes de finalizar.';
+  end if;
+  if exists (select 1 from public.clinicnow_consultas where status is null or status not in ('agendada','concluida','cancelada')) then
+    raise exception 'Status nulo ou inválido no legado.';
+  end if;
+  if exists (
+    select 1 from public.clinicnow_consultas a join public.clinicnow_consultas b
+      on a.clinic_id = b.clinic_id and a.id < b.id
+     and a.status is distinct from 'cancelada' and b.status is distinct from 'cancelada'
+     and tstzrange(a.inicio, a.termina_em, '[)') && tstzrange(b.inicio, b.termina_em, '[)')
+  ) then raise exception 'Há sobreposições no legado; resolva-as antes da etapa 003.'; end if;
+end $$;
+commit;

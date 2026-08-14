@@ -1,13 +1,23 @@
 import React, { useState } from "react";
 import Emily from "./tabs/Emily.jsx";
+import Aprovacoes from "./tabs/Aprovacoes.jsx";
 import Agenda from "./tabs/Agenda.jsx";
 import Pacientes from "./tabs/Pacientes.jsx";
 import Servicos from "./tabs/Servicos.jsx";
 import Financeiro from "./tabs/Financeiro.jsx";
 import Config from "./tabs/Config.jsx";
 import EmBreve from "./tabs/EmBreve.jsx";
+import { OwnerGate, useAuth } from "./auth.jsx";
+import { supabase } from "./supabase.js";
+import filaDemo from "./demo/fila-andreia.json";
+
+// O nome da clínica vem da configuração real do piloto, não fica escrito na tela.
+// Trocar de clínica é trocar o arquivo de configuração.
+const NOME_CLINICA = filaDemo.clinica || "ClinicNow";
 
 const MODULOS = [
+  // Aprovações vem primeiro: na Fase 1 é a tela onde a dona realmente trabalha.
+  { id: "aprovacoes", label: "Aprovações", icon: "✅" },
   { id: "agenda", label: "Agenda", icon: "📅" },
   { id: "emily", label: "Emily", icon: "💬" },
   { id: "pacientes", label: "Pacientes", icon: "🧑‍⚕️" },
@@ -20,7 +30,12 @@ const MODULOS = [
 ];
 
 export default function App() {
-  const [tab, setTab] = useState("agenda");
+  return <OwnerGate><AppInterno /></OwnerGate>;
+}
+
+function AppInterno() {
+  const { modo } = useAuth();
+  const [tab, setTab] = useState("aprovacoes");
   const [menuAberto, setMenuAberto] = useState(false);
   const [agendaVersion, setAgendaVersion] = useState(0);
 
@@ -43,7 +58,10 @@ export default function App() {
           ☰
         </button>
         <span className="logo">ClinicNow</span>
-        <span className="clinica">Clínica Demonstração · v1</span>
+        <span className="clinica">
+          {modo === "synthetic" ? `${NOME_CLINICA} · demonstração, sem dados reais` : `${NOME_CLINICA} · acesso autenticado`}
+        </span>
+        {modo === "owner" && <button className="botao-leve" onClick={() => supabase.auth.signOut()}>Sair</button>}
       </header>
       <div className="corpo">
         <nav className={menuAberto ? "sidebar aberta" : "sidebar"} aria-label="Módulos">
@@ -63,6 +81,7 @@ export default function App() {
         </nav>
         {menuAberto && <div className="sombra-menu" onClick={() => setMenuAberto(false)} />}
         <main className="conteudo">
+          {tab === "aprovacoes" && <Aprovacoes />}
           {tab === "agenda" && <Agenda key={agendaVersion} />}
           {tab === "emily" && <Emily onAgendou={() => setAgendaVersion((v) => v + 1)} />}
           {tab === "pacientes" && <Pacientes />}

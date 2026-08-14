@@ -4,8 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k \"node server.mjs\" \"vite\"",
+    "dev": "npm run dev:synthetic",
+    "dev:synthetic": "VITE_CLINICNOW_MODE=synthetic vite",
+    "dev:owner": "VITE_CLINICNOW_MODE=owner vite",
     "build": "vite build",
+    "test": "node --test test/*.test.mjs",
     "preview": "vite preview",
     "emily:create": "node scripts/create-emily-agent.mjs",
     "emily:update": "node scripts/update-emily-agent.mjs"

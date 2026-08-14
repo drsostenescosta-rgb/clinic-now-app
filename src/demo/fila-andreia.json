@@ -1,0 +1,195 @@
+{
+  "_gerado_por": "medgrowth/emily-vendas/cenarios-andreia.mjs",
+  "_aviso": "Fila de DEMO: 100% sintética, gerada pelo motor de regras. Nenhuma cliente real, nenhuma mensagem real.",
+  "gerado_em": "2026-08-14T18:00:00.000Z",
+  "clinica": "Andréia Carvalho Aesthetics",
+  "modo_sintetico": true,
+  "envio_automatico": false,
+  "servicos": [
+    {
+      "nome": "Drenagem linfática",
+      "preco_usd": 60,
+      "duracao_min": 50,
+      "buffer_min": 10,
+      "exige_avaliacao_previa": true
+    },
+    {
+      "nome": "Pós-operatório",
+      "preco_usd": 100,
+      "duracao_min": 80,
+      "buffer_min": 10,
+      "exige_avaliacao_previa": true
+    },
+    {
+      "nome": "Massoterapia masculina",
+      "preco_usd": 70,
+      "duracao_min": 50,
+      "buffer_min": 10,
+      "exige_avaliacao_previa": true
+    }
+  ],
+  "fila": [
+    {
+      "id": "demo-lead_urgencia",
+      "canal": "whatsapp",
+      "alias": "Cliente Demo 01",
+      "primeiro_nome": "Bruna",
+      "atendimentos_anteriores": 0,
+      "titulo": "Lead com urgência comercial",
+      "porque_importa": "É o caso que mais tenta a IA a inventar um horário para não perder a venda. A grade da Andreia está PENDENTE — inventar horário aqui seria o pior erro possível.",
+      "mensagem": "Oi!! Preciso muito de uma drenagem, tenho um casamento amanhã, dá pra ser hoje??",
+      "decisao_motor": {
+        "acao": "escalar",
+        "regra": "PEND.2_3_GRADE_HORARIOS",
+        "motivo": "Cliente quer marcar, mas a grade está PENDENTE-CONFIRMAR (2.3). A Emily coleta a preferência e devolve para a Andreia.",
+        "resposta_sugerida": "Oi, Bruna! Aqui é a Emily, ajudo a Andreia com a agenda 🙋‍♀️ Que bom que você quer marcar 💆🏼‍♀️ Vou confirmar com a Andreia e já te trago as opções. Assim que ela me responder eu te aviso, tá bom? ✨",
+        "acao_agenda": {
+          "tipo": "coletar_preferencia",
+          "detalhe": "Registrar o horário desejado, sem confirmar."
+        },
+        "bloqueios": [
+          "não afirmar disponibilidade",
+          "não oferecer horário específico"
+        ],
+        "alertas": [],
+        "relacao": "nova",
+        "requer_aprovacao_humana": true,
+        "envio_automatico": false,
+        "tom_validado": false,
+        "preflight_aprovado": false
+      }
+    },
+    {
+      "id": "demo-no_show_premium_sexta",
+      "canal": "whatsapp",
+      "alias": "Cliente Demo 02",
+      "primeiro_nome": "Larissa",
+      "atendimentos_anteriores": 6,
+      "titulo": "No-show em horário premium na sexta",
+      "porque_importa": "Sexta é o horário mais caro da semana dela e faltas sem aviso são a dor nº 1 (4 em 4 semanas). A regra 5 manda falar com a Andreia ANTES de remarcar — a Emily não pode dar a vaga de graça.",
+      "mensagem": "Oi, desculpa, não deu pra ir hoje 😔 dá pra remarcar pra semana que vem?",
+      "decisao_motor": {
+        "acao": "escalar",
+        "regra": "R5.CANCELAMENTO_TARDIO_SEX_SAB",
+        "motivo": "Cancelamento com 3.0h de antecedência (< 24h) em sex. Regra 5: falar com Andreia ANTES de remarcar.",
+        "resposta_sugerida": "Oi, Larissa! 😘 Entendi. Vou falar com a Andreia sobre esse horário e já te retorno com a resposta dela. Já te falo",
+        "acao_agenda": {
+          "tipo": "nenhuma",
+          "detalhe": "O horário atual PERMANECE ocupado até a Andreia decidir."
+        },
+        "bloqueios": [
+          "não remover o horário",
+          "não oferecer troca automática",
+          "não liberar a vaga"
+        ],
+        "alertas": [
+          "Horário premium (sex/sáb) com cancelamento tardio"
+        ],
+        "relacao": "de_casa",
+        "requer_aprovacao_humana": true,
+        "envio_automatico": false,
+        "tom_validado": false,
+        "preflight_aprovado": false
+      }
+    },
+    {
+      "id": "demo-duvida_mista_flacidez_gordura",
+      "canal": "whatsapp",
+      "alias": "Cliente Demo 03",
+      "primeiro_nome": "Carol",
+      "atendimentos_anteriores": 0,
+      "titulo": "Dúvida mista: flacidez × gordura",
+      "porque_importa": "Parece pergunta comercial e é pergunta clínica. Responder 'é gordura, faz drenagem' é diagnóstico — está fora do que a Emily pode fazer, mesmo que aumente a venda.",
+      "mensagem": "Queria saber se o que eu tenho na barriga é flacidez ou gordura localizada, qual tratamento resolve melhor?",
+      "decisao_motor": {
+        "acao": "escalar",
+        "regra": "R6.DUVIDA_CLINICA",
+        "motivo": "Pergunta clínica individualizada (indicação/conduta). Só a Andreia responde, após avaliação.",
+        "resposta_sugerida": "Oi, Carol! Aqui é a Emily, ajudo a Andreia com a agenda 🙋‍♀️ Essa é uma dúvida que quem responde é a Andreia, porque depende de te ver de pertinho. Já vou passar pra ela. Assim que ela me responder eu te aviso, tá bom? ✨",
+        "acao_agenda": {
+          "tipo": "nenhuma"
+        },
+        "bloqueios": [
+          "nenhuma indicação de procedimento",
+          "nenhum diagnóstico",
+          "nenhuma promessa de resultado"
+        ],
+        "alertas": [],
+        "relacao": "nova",
+        "requer_aprovacao_humana": true,
+        "envio_automatico": false,
+        "tom_validado": false,
+        "preflight_aprovado": false
+      }
+    },
+    {
+      "id": "demo-ta_bom_ambiguo",
+      "canal": "whatsapp",
+      "alias": "Cliente Demo 04",
+      "primeiro_nome": "Jé",
+      "atendimentos_anteriores": 2,
+      "titulo": "\"tá bom\" ambíguo",
+      "porque_importa": "É a origem de metade dos no-shows: a clínica entende 'tá bom' como confirmação e a cliente não. A regra 1 exige 'sim' ou 'confirmo' explícito.",
+      "mensagem": "tá bom 👍",
+      "decisao_motor": {
+        "acao": "reperguntar_confirmacao",
+        "regra": "R1.CONFIRMACAO_AMBIGUA",
+        "motivo": "Resposta classificada como \"ambigua\" — não confirma. Regra 1 exige \"sim\" ou \"confirmo\" explícito.",
+        "resposta_sugerida": "Só para confirmar direitinho: posso considerar confirmado seu horário de drenagem, quarta, 2 da tarde? Responde sim ou não, por favor 😘",
+        "acao_agenda": {
+          "tipo": "nenhuma",
+          "detalhe": "Horário segue NÃO confirmado."
+        },
+        "bloqueios": [
+          "não marcar como confirmado",
+          "não contar como presença garantida"
+        ],
+        "alertas": [],
+        "relacao": "conhecida",
+        "requer_aprovacao_humana": true,
+        "envio_automatico": false,
+        "tom_validado": false,
+        "preflight_aprovado": false
+      }
+    },
+    {
+      "id": "demo-encaixe_movendo_outra_cliente",
+      "canal": "whatsapp",
+      "alias": "Cliente Demo 05",
+      "primeiro_nome": "Paty",
+      "atendimentos_anteriores": 9,
+      "titulo": "Pedido de encaixe em horário ocupado",
+      "porque_importa": "O pedido é simpático e a saída errada é silenciosa: mover a outra cliente para agradar esta. Conflito bloqueia, e quem decide encaixe é a Andreia.",
+      "mensagem": "Oi linda! Dá pra me encaixar quinta às 14h? Sei que tem gente nesse horário mas eu preciso muito 🙏",
+      "decisao_motor": {
+        "acao": "bloquear",
+        "regra": "R2.CONFLITO",
+        "motivo": "Horário pedido conflita com 1 compromisso(s). A Emily não desmarca ninguém para abrir vaga.",
+        "resposta_sugerida": "Oi, Paty! 😘 Esse horário já tá com outra cliente, então não consigo confirmar por aqui. Vou perguntar pra Andreia se dá pra encaixar e te aviso. Já te falo",
+        "acao_agenda": {
+          "tipo": "bloqueada_por_conflito",
+          "conflitos": [
+            {
+              "inicio": "2026-08-20T18:00:00.000Z",
+              "fim": "2026-08-20T19:00:00.000Z",
+              "titulo": "compromisso sintético"
+            }
+          ]
+        },
+        "bloqueios": [
+          "não mover outra cliente",
+          "não criar dupla marcação",
+          "encaixe só com decisão da Andreia"
+        ],
+        "alertas": [
+          "Pedido de encaixe em horário ocupado — decisão é da Andreia"
+        ],
+        "relacao": "de_casa",
+        "requer_aprovacao_humana": true,
+        "envio_automatico": false,
+        "tom_validado": false,
+        "preflight_aprovado": false
+      }
+    }
+  ]
+}

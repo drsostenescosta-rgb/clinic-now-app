@@ -228,3 +228,56 @@ button:disabled { opacity: 0.6; }
 .botao-confirmar { background: var(--verde); }
 .chat-envio { display: flex; gap: 8px; margin-top: 10px; }
 .chat-envio input { flex: 1; }
+
+/* ---------------------------------------------------------------- Painel de Aprovação */
+.aprov-cabecalho { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; }
+.selo-demo { background: #fef3c7; color: #92400e; }
+
+/* A promessa da Fase 1 fica no topo, com peso visual — não é aviso de rodapé. */
+.aprov-promessa {
+  margin: 12px 0; padding: 10px 12px; border-radius: 8px;
+  background: var(--verde-claro); color: #134e4a; font-size: 0.9rem; line-height: 1.45;
+}
+
+.aprov-gate { margin-bottom: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--borda); background: #fff; }
+.aprov-gate.reprovado { border-color: #fcd34d; background: #fffbeb; }
+.aprov-gate-linha { font-size: 0.9rem; }
+.aprov-pendencias { margin: 6px 0 4px 18px; font-size: 0.82rem; color: var(--sub); }
+.aprov-pendencias li { margin: 2px 0; }
+
+.aprov-quem { max-width: 320px; margin-bottom: 16px; }
+.aprov-vazio { padding: 24px 0; }
+
+.aprov-lista { display: flex; flex-direction: column; gap: 16px; }
+
+.aprov-cartao {
+  border: 1px solid var(--borda); border-radius: 12px; padding: 14px;
+  background: #fff; display: flex; flex-direction: column; gap: 10px;
+}
+.aprov-cartao-topo { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.aprov-etiqueta { color: #fff; font-size: 0.72rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.aprov-titulo { font-size: 0.82rem; color: var(--sub); font-style: italic; }
+.aprov-recebida { align-self: flex-start; max-width: 90%; }
+
+.aprov-porque { display: flex; gap: 8px; align-items: baseline; font-size: 0.85rem; flex-wrap: wrap; }
+.aprov-regra {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem;
+  background: #f1f5f9; border: 1px solid var(--borda); border-radius: 6px; padding: 2px 6px; white-space: nowrap;
+}
+.aprov-bloqueios { margin-left: 18px; font-size: 0.8rem; color: #b91c1c; }
+.aprov-alerta { font-size: 0.85rem; font-weight: 600; color: #b45309; }
+.aprov-agenda { font-size: 0.85rem; }
+
+.aprov-texto { width: 100%; font: inherit; padding: 8px; border: 1px solid var(--borda); border-radius: 8px; resize: vertical; }
+.aprov-editado { color: #b45309; font-style: normal; font-size: 0.75rem; }
+
+.aprov-acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.aprov-decididos { margin-top: 24px; border-top: 1px solid var(--borda); padding-top: 14px; }
+.aprov-decidido { padding: 8px 0; border-bottom: 1px solid var(--borda); font-size: 0.88rem; }
+.aprov-lembrete { font-size: 0.8rem; color: #134e4a; background: var(--verde-claro); padding: 6px 8px; border-radius: 6px; margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .aprov-cabecalho { flex-direction: column; }
+  .aprov-acoes button { flex: 1 1 auto; }
+}

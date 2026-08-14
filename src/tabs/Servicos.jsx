@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { carregarServicos, fmtUSD, CORES_CATEGORIA } from "../supabase.js";
 
-// v1.1: catálogo é SOMENTE LEITURA no app. A política RLS de UPDATE anônimo em
-// clinicnow_servicos foi removida (qualquer pessoa com a chave publishable podia
-// alterar preços). Edição volta com login do dono no E2.
-// Decisão: docs/decisoes/2026-08-09-v1.1-rls-anon-minimo.md
+// Catálogo somente leitura no navegador; alterações administrativas ficam fora
+// desta fundação até existir um fluxo próprio com autorização e auditoria.
 export default function Servicos() {
   const [servicos, setServicos] = useState(null);
   const [erro, setErro] = useState("");
@@ -42,16 +40,14 @@ export default function Servicos() {
               </div>
               <div className="servico-preco">
                 <strong>{fmtUSD(s.preco_usd)}</strong>
-                <span className="sub">{s.duracao_min} min</span>
+                <span className="sub">{s.duracao_min} min + buffer {s.buffer_min ?? "pendente"} min</span>
               </div>
             </li>
           ))}
         </ul>
       )}
       <p className="sub nota">
-        🔒 Por segurança, o catálogo é somente leitura nesta versão: alterar preços vai exigir o
-        login do dono (E2 do backlog). Até lá, mudanças de preço são feitas direto no banco e
-        sincronizadas na Emily com <code>npm run emily:update</code>.
+        🔒 O catálogo é somente leitura. O modo sintético não deve receber valores ou nomes reais.
       </p>
     </div>
   );

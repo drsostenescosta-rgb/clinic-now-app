@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { supabase } from "../supabase.js";
+import { MODO, supabase, criarPaciente } from "../supabase.js";
+import { EXEMPLO_ALIAS_SINTETICO, validarAliasSintetico } from "../syntheticPolicy.js";
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState(null);
@@ -27,11 +28,10 @@ export default function Pacientes() {
     if (!nome.trim()) return;
     setSalvando(true);
     setErro("");
-    const { error } = await supabase.from("clinicnow_pacientes").insert({
-      nome: nome.trim(),
-      telefone: telefone.trim() || null,
-      drive_url: driveUrl.trim() || null,
-    });
+    if (MODO === "synthetic" && !validarAliasSintetico(nome)) { setSalvando(false); setErro(`Use somente alias artificial, por exemplo: ${EXEMPLO_ALIAS_SINTETICO}.`); return; }
+    let error = null;
+    try { await criarPaciente({ nome: nome.trim(), telefone: MODO === "owner" ? telefone.trim() || null : null, drive_url: MODO === "owner" ? driveUrl.trim() || null : null }); }
+    catch (e) { error = e; }
     setSalvando(false);
     if (error) return setErro(error.message);
     setNome("");
@@ -43,24 +43,25 @@ export default function Pacientes() {
   return (
     <div className="painel">
       <h2>Pacientes</h2>
+      {MODO === "synthetic" && <p className="aviso">Demonstração sem dados pessoais: use aliases como <strong>{EXEMPLO_ALIAS_SINTETICO}</strong>. Não digite nomes, telefones ou links reais.</p>}
       <form className="formulario" onSubmit={cadastrar}>
         <input
-          placeholder="Nome do paciente"
+          placeholder={MODO === "synthetic" ? EXEMPLO_ALIAS_SINTETICO : "Nome do paciente"}
           value={nome}
           onChange={(e) => setNome(e.target.value)}
           required
         />
-        <input
+        {MODO === "owner" && <input
           placeholder="Telefone (opcional)"
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
-        />
-        <input
+        />}
+        {MODO === "owner" && <input
           placeholder="Link da pasta no Google Drive (opcional)"
           type="url"
           value={driveUrl}
           onChange={(e) => setDriveUrl(e.target.value)}
-        />
+        />}
         <button type="submit" disabled={salvando}>
           {salvando ? "Salvando…" : "Cadastrar paciente"}
         </button>

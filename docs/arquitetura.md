@@ -1,18 +1,27 @@
-# Arquitetura — clinic-now-app (v0)
+# Arquitetura atual — fundação E2 local
 
-Documento-mãe: `~/Applications/clinic-now-access/docs/ARQUITETURA_UNIFICACAO.md` (decisão aprovada 08/08/2026). Este arquivo resume só o que o v0 implementa.
+## Modo sintético (padrão comprovado)
 
-## Fatia v0
-
-```
-Navegador (React+Vite PWA, porta 5190)
- ├─ aba Emily ──── WebSocket ElevenLabs (signed URL via server.mjs:4790; chave só no servidor)
- │                  agente "Emily — ClinicNow Recepção" (LLM claude-sonnet-4-5, voz pt da Emily)
- │                  proposta [PROPOSTA] → botão confirmar → insert clinicnow_consultas (origem=emily)
- ├─ aba Agenda ─── Supabase sosmed: clinicnow_consultas (select/insert, RLS)
- └─ aba Pacientes ─ Supabase sosmed: clinicnow_pacientes (select/insert, RLS)
+```text
+React/Vite
+  -> adapter localStorage
+  -> aliases Paciente Demo NN
+  -> RPCs locais com bloqueio de conflito
+  -> nenhum servidor de integração
 ```
 
-- **Banco:** Supabase `sosmed` (`yaqphldowpshhrtvvfaq`, sa-east-1) — o banco da unificação (§4 do doc-mãe). Tabelas novas `clinicnow_pacientes` e `clinicnow_consultas` via migration `clinicnow_app_v0_pacientes_consultas`, RLS ligada, políticas anon select/insert restritas a elas.
-- **Segurança v0:** nenhum dado real (tudo sintético); chave ElevenLabs só no `server.mjs`; chave Supabase é a publishable (pública por design, limitada pela RLS). Limitações conhecidas em `docs/decisoes/2026-08-08-v0-single-tenant-sem-login.md`.
-- **Módulos "em breve"** (Vitrine, Lia, Paciente, Produtos, Crescimento, Atendimento Online): entram nas fases do doc-mãe §8, não antes.
+`npm run dev:synthetic` sobe somente o Vite. Agenda e Pacientes rejeitam nomes, telefone e Drive reais. Emily/Google não são acionados; `server.mjs` retorna 403 por padrão nos três endpoints externos em qualquer modo e não contém fetch/Composio/leitura de segredos.
+
+## Modo owner (contrato preparado, não verificado remotamente)
+
+```text
+Supabase Auth -> OwnerGate -> RLS por clinic_id
+                            -> criar_paciente RPC
+                            -> reservar_consulta RPC
+                            -> atualizar_consulta RPC
+                            -> constraint GiST anti-overbooking
+```
+
+Os artefatos manuais são faseados em containment, bootstrap/backfill e finalize. O navegador recebe apenas SELECT; clínica, preço, duração, buffer e término são derivados no banco. Consulte `docs/e2-owner-mode-runbook.md`.
+
+Não há evidência neste repositório de aplicação SQL, isolamento remoto ou integração externa ativa. Integrações ficam desligadas também em owner nesta E2. Os documentos em `docs/decisoes/2026-08-08*` e `2026-08-09*` são históricos.
