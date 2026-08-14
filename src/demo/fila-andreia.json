@@ -42,7 +42,7 @@
         "acao": "escalar",
         "regra": "PEND.2_3_GRADE_HORARIOS",
         "motivo": "Cliente quer marcar, mas a grade está PENDENTE-CONFIRMAR (2.3). A Emily coleta a preferência e devolve para a Andreia.",
-        "resposta_sugerida": "Oi, Bruna! Aqui é a Emily, ajudo a Andreia com a agenda 🙋‍♀️ Que bom que você quer marcar 💆🏼‍♀️ Vou confirmar com a Andreia e já te trago as opções. Assim que ela me responder eu te aviso, tá bom? ✨",
+        "resposta_sugerida": "Oi, Bruna! Aqui é a Emily, ajudo a Andreia com a agenda 🙋‍♀️ Que bom que você quer marcar 💆🏼‍♀️ Vou confirmar os horários com a Andreia. Assim que ela me responder eu te aviso, tá bom? ✨",
         "acao_agenda": {
           "tipo": "coletar_preferencia",
           "detalhe": "Registrar o horário desejado, sem confirmar."
@@ -72,7 +72,7 @@
         "acao": "escalar",
         "regra": "R5.CANCELAMENTO_TARDIO_SEX_SAB",
         "motivo": "Cancelamento com 3.0h de antecedência (< 24h) em sex. Regra 5: falar com Andreia ANTES de remarcar.",
-        "resposta_sugerida": "Oi, Larissa! 😘 Entendi. Vou falar com a Andreia sobre esse horário e já te retorno com a resposta dela. Já te falo",
+        "resposta_sugerida": "Oi, Larissa! 😘 Entendi. Vou falar com a Andreia sobre esse horário. Já te falo.",
         "acao_agenda": {
           "tipo": "nenhuma",
           "detalhe": "O horário atual PERMANECE ocupado até a Andreia decidir."
@@ -165,7 +165,7 @@
         "acao": "bloquear",
         "regra": "R2.CONFLITO",
         "motivo": "Horário pedido conflita com 1 compromisso(s). A Emily não desmarca ninguém para abrir vaga.",
-        "resposta_sugerida": "Oi, Paty! 😘 Esse horário já tá com outra cliente, então não consigo confirmar por aqui. Vou perguntar pra Andreia se dá pra encaixar e te aviso. Já te falo",
+        "resposta_sugerida": "Oi, Paty! 😘 Esse horário já tá ocupado, então não consigo confirmar por aqui. Vou perguntar pra Andreia se dá pra encaixar. Já te falo.",
         "acao_agenda": {
           "tipo": "bloqueada_por_conflito",
           "conflitos": [

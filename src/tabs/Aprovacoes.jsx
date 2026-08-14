@@ -120,8 +120,18 @@ function Gate({ gate, modo, aviso, ledger }) {
     <div className={reprovado ? "aprov-gate reprovado" : "aprov-gate"}>
       <div className="aprov-gate-linha">
         <strong>{reprovado ? "Preflight REPROVADO — modo sintético" : "Preflight aprovado"}</strong>
-        {reprovado && <span className="sub"> · nenhum dado real entra no sistema, e a Emily não oferece horário</span>}
+        {reprovado && <span className="sub"> · a Emily não oferece horário e o sistema só aceita apelidos "Cliente Demo NN"</span>}
       </div>
+      {reprovado && (
+        // Honestidade sobre o alcance real da proteção: o scanner reconhece FORMATOS
+        // (e-mail, telefone, SSN, data). Ele não sabe reconhecer um nome próprio. Prometer
+        // "nenhum dado real entra" seria mentira, e mentira em aviso de segurança é pior que
+        // aviso nenhum — ensina a confiar no que não protege.
+        <p className="sub aprov-limite">
+          O sistema <strong>recusa</strong> e-mail, telefone, SSN e data de nascimento, e só aceita apelidos sintéticos.
+          Ele <strong>não sabe</strong> reconhecer o nome de uma pessoa — não digite dado real de cliente aqui.
+        </p>
+      )}
       {reprovado && (
         <ul className="aprov-pendencias">
           {(gate.pendencias_abertas || []).map((p) => (
@@ -165,16 +175,21 @@ function Cartao({ item, aprovador, aoDecidir }) {
     }
     setOcupado(true);
     setErro("");
+    // A decisão real precisa viajar junto para a tela — antes o bloco "Decididos agora" imprimia
+    // "aprovada" fixo e chamava de aprovada o que tinha sido escalado ou descartado. Num painel
+    // cuja única promessa é auditabilidade, a tela contar o contrário do registro é grave.
+    const decisaoReal = tipo === "aprovar" ? (editado ? "editada" : "aprovada") : tipo === "escalar" ? "escalada" : "descartada";
     try {
       const resposta = await enviarDecisao({
         id: item.id,
-        decisao: tipo === "aprovar" ? (editado ? "editada" : "aprovada") : tipo === "escalar" ? "escalada" : "descartada",
+        decisao: decisaoReal,
         aprovador: aprovador.trim(),
         texto_original: original,
-        texto_final: texto,
+        // Descarte não leva texto: nada foi aprovado para enviar.
+        texto_final: decisaoReal === "descartada" ? "" : texto,
         motivo_da_decisao: motivo,
       });
-      aoDecidir(item.id, { ...resposta, texto, editado, aprovador: aprovador.trim() });
+      aoDecidir(item.id, { ...resposta, decisao: decisaoReal, texto, editado, aprovador: aprovador.trim() });
     } catch (e) {
       setErro(String(e?.message || e));
     } finally {
@@ -265,6 +280,13 @@ function Cartao({ item, aprovador, aoDecidir }) {
 }
 
 // ---------------------------------------------------------------- já decididos nesta sessão
+const ROTULO_DECISAO = {
+  aprovada: "aprovada",
+  editada: "aprovada com edição",
+  escalada: "escalada para a Andreia",
+  descartada: "descartada",
+};
+
 function Decididos({ fila, decididos }) {
   const itens = fila.filter((p) => decididos[p.id]);
   return (
@@ -278,12 +300,18 @@ function Decididos({ fila, decididos }) {
               <strong>{p.primeiro_nome || p.alias}</strong>
               <span className="sub">
                 {" "}
-                · {r.editado ? "aprovada com edição" : "aprovada"} por {r.aprovador}
+                · <span className={`aprov-tag aprov-tag-${r.decisao}`}>{ROTULO_DECISAO[r.decisao] || r.decisao}</span> por {r.aprovador}
                 {r.evento && ` · ledger #${r.evento.seq} (${r.evento.hash.slice(0, 8)}…)`}
                 {r.demo && " · modo demo, sem ledger"}
               </span>
             </div>
-            <p className="aprov-lembrete">{r.lembrete}</p>
+            <p className="aprov-lembrete">
+              {r.decisao === "descartada"
+                ? "Descartada. Nenhum texto foi liberado e nada foi enviado."
+                : r.decisao === "escalada"
+                  ? "Escalada para a Andreia. Avise ela agora — a conversa está com o humano."
+                  : r.lembrete}
+            </p>
             {r.agenda && (
               <p className="sub">
                 Agenda: {r.agenda.ok ? "reservada" : `bloqueada — ${r.agenda.motivo}`}
