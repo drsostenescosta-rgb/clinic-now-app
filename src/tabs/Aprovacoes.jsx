@@ -287,6 +287,15 @@ const ROTULO_DECISAO = {
   descartada: "descartada",
 };
 
+// "escalada para a Andreia por Andreia" é frase de sistema. Quando quem aprova É a responsável
+// pela escalada, o que aconteceu foi ela assumir o caso — e é isso que a tela deve dizer.
+const RESPONSAVEL = "andreia";
+function rotuloDecisao(decisao, aprovador) {
+  const ehResponsavel = String(aprovador || "").toLowerCase().includes(RESPONSAVEL);
+  if (decisao === "escalada" && ehResponsavel) return "assumida por você";
+  return ROTULO_DECISAO[decisao] || decisao;
+}
+
 function Decididos({ fila, decididos }) {
   const itens = fila.filter((p) => decididos[p.id]);
   return (
@@ -300,7 +309,7 @@ function Decididos({ fila, decididos }) {
               <strong>{p.primeiro_nome || p.alias}</strong>
               <span className="sub">
                 {" "}
-                · <span className={`aprov-tag aprov-tag-${r.decisao}`}>{ROTULO_DECISAO[r.decisao] || r.decisao}</span> por {r.aprovador}
+                · <span className={`aprov-tag aprov-tag-${r.decisao}`}>{rotuloDecisao(r.decisao, r.aprovador)}</span>{!(r.decisao === "escalada" && String(r.aprovador || "").toLowerCase().includes(RESPONSAVEL)) && ` por ${r.aprovador}`}
                 {r.evento && ` · ledger #${r.evento.seq} (${r.evento.hash.slice(0, 8)}…)`}
                 {r.demo && " · modo demo, sem ledger"}
               </span>
@@ -309,7 +318,9 @@ function Decididos({ fila, decididos }) {
               {r.decisao === "descartada"
                 ? "Descartada. Nenhum texto foi liberado e nada foi enviado."
                 : r.decisao === "escalada"
-                  ? "Escalada para a Andreia. Avise ela agora — a conversa está com o humano."
+                  ? String(r.aprovador || "").toLowerCase().includes(RESPONSAVEL)
+                    ? "Você assumiu esta conversa. A Emily não responde mais aqui até você devolver."
+                    : "Escalada para a Andreia. Avise ela agora — a conversa está com o humano."
                   : r.lembrete}
             </p>
             {r.agenda && (
