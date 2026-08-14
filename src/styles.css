@@ -287,3 +287,4 @@ button:disabled { opacity: 0.6; }
 .aprov-tag-aprovada, .aprov-tag-editada { color: #0f766e; }
 .aprov-tag-escalada { color: #b91c1c; }
 .aprov-tag-descartada { color: #64748b; }
+.aprov-sem-ancora { color: #b45309; }

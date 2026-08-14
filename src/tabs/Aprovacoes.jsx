@@ -147,8 +147,14 @@ function Gate({ gate, modo, aviso, ledger }) {
       )}
       {modo === "demo" && aviso && <p className="sub">ℹ {aviso}</p>}
       {ledger && (
+        // "íntegra" sem âncora e "íntegra com âncora" são estados muito diferentes, e a versão
+        // anterior mostrava a mesma coisa nos dois — inclusive no dia 1, quando não há âncora
+        // nenhuma. Sem essa distinção a dona não consegue saber se está protegida.
         <p className="sub">
           Ledger: {ledger.total} evento(s) · cadeia {ledger.ok ? "íntegra ✅" : "QUEBRADA ⚠"}
+          {ledger.ancora?.presente === false && (
+            <strong className="aprov-sem-ancora"> · âncora ausente ⚠ (sem proteção contra reescrita)</strong>
+          )}
         </p>
       )}
     </div>
