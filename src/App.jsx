@@ -15,6 +15,36 @@ import filaDemo from "./demo/fila-andreia.json";
 // Trocar de clínica é trocar o arquivo de configuração.
 const NOME_CLINICA = filaDemo.clinica || "ClinicNow";
 
+// Símbolo Z-Portal, o mesmo SVG da marca em drsostenescosta-rgb.github.io/assets/marca.
+// Inline em vez de <img> para herdar a cor do contexto (branco na topbar, verde no rodapé).
+function SimboloZatheon({ className = "marca-simbolo" }) {
+  return (
+    <svg className={className} viewBox="0 0 64 64" role="img" aria-label="Zatheon" focusable="false">
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M18 4h28c7.732 0 14 6.268 14 14v40H46v-8H18v8H4V18C4 10.268 10.268 4 18 4Zm-2 13h32v7L29 41h19v7H16v-7l19-17H16v-7Z"
+      />
+    </svg>
+  );
+}
+
+/** Assinatura: a Andreia e a Lohane precisam saber de quem é o produto que estão usando. */
+function RodapeMarca() {
+  return (
+    <footer className="rodape-marca">
+      <SimboloZatheon />
+      <span>
+        <strong>ClinicNow</strong> é um produto <strong>Zatheon</strong>
+      </span>
+      <span className="rodape-sep">·</span>
+      <span>Sostenes Costa Paiva — biomédico, fisioterapeuta e fundador</span>
+      <span className="rodape-sep">·</span>
+      <span>Piloto Fase 1 — operação assistida</span>
+    </footer>
+  );
+}
+
 const MODULOS = [
   // Aprovações vem primeiro: na Fase 1 é a tela onde a dona realmente trabalha.
   { id: "aprovacoes", label: "Aprovações", icon: "✅" },
@@ -57,9 +87,14 @@ function AppInterno() {
         >
           ☰
         </button>
-        <span className="logo">ClinicNow</span>
+        <span className="marca">
+          <SimboloZatheon />
+          <span className="logo">
+            ClinicNow<span className="logo-sufixo">Zatheon</span>
+          </span>
+        </span>
         <span className="clinica">
-          {modo === "synthetic" ? `${NOME_CLINICA} · demonstração, sem dados reais` : `${NOME_CLINICA} · acesso autenticado`}
+          {modo === "synthetic" ? `${NOME_CLINICA} · agenda e pacientes no navegador` : `${NOME_CLINICA} · acesso autenticado`}
         </span>
         {modo === "owner" && <button className="botao-leve" onClick={() => supabase.auth.signOut()}>Sair</button>}
       </header>
@@ -89,6 +124,7 @@ function AppInterno() {
           {tab === "financeiro" && <Financeiro />}
           {tab === "config" && <Config />}
           {ativo?.embreve && <EmBreve nome={ativo.label} icone={ativo.icon} desc={ativo.embreve} />}
+          <RodapeMarca />
         </main>
       </div>
     </div>

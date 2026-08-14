@@ -11,7 +11,8 @@
     "test": "node --test test/*.test.mjs",
     "preview": "vite preview",
     "emily:create": "node scripts/create-emily-agent.mjs",
-    "emily:update": "node scripts/update-emily-agent.mjs"
+    "emily:update": "node scripts/update-emily-agent.mjs",
+    "dev:operacao": "VITE_APROVACOES_API=http://127.0.0.1:4791 vite"
   },
   "dependencies": {
     "@elevenlabs/client": "^0.6.2",

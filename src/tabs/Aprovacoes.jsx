@@ -7,6 +7,7 @@ import {
   carregarEstado,
   carregarFila,
   copiar,
+  criarProposta,
   enviarDecisao,
   lerAprovador,
   salvarAprovador,
@@ -44,6 +45,12 @@ export default function Aprovacoes() {
   }, []);
 
   const pendentes = useMemo(() => fila.filter((p) => !decididos[p.id]), [fila, decididos]);
+
+  async function recarregar() {
+    const [e, f] = await Promise.all([carregarEstado(), carregarFila()]);
+    setEstado(e);
+    setFila(f);
+  }
 
   function aoDecidir(id, registro) {
     setDecididos((d) => ({ ...d, [id]: registro }));
@@ -85,6 +92,10 @@ export default function Aprovacoes() {
 
       <Gate gate={gate} modo={estado?.modo} aviso={estado?.aviso_demo} ledger={estado?.ledger} />
 
+      {TEM_PONTE && (
+        <Composer aprovador={aprovador} aoCriar={recarregar} protecao={estado?.gate?.protecao_dados || ""} />
+      )}
+
       <label className="campo-rotulado aprov-quem">
         <span>Quem está aprovando agora</span>
         <input
@@ -113,20 +124,106 @@ export default function Aprovacoes() {
   );
 }
 
+// ---------------------------------------------------------------- entrada de mensagem real
+/**
+ * Só aparece com a ponte ligada. É por aqui que a operação deixa de ser ensaio: a mensagem que
+ * chegou no WhatsApp dela é colada aqui, o motor de regras decide, e a proposta entra na fila.
+ */
+function Composer({ aprovador, aoCriar, protecao }) {
+  const [alias, setAlias] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const [servico, setServico] = useState("");
+  const [anteriores, setAnteriores] = useState("");
+  const [aguardando, setAguardando] = useState(false);
+  const [ocupado, setOcupado] = useState(false);
+  const [erro, setErro] = useState("");
+
+  async function enviar(e) {
+    e.preventDefault();
+    if (!aprovador.trim()) return setErro("Escreva seu nome em \"Quem está aprovando agora\" antes.");
+    if (!alias.trim() || !mensagem.trim()) return setErro("Preciso do apelido da cliente e da mensagem.");
+    setOcupado(true);
+    setErro("");
+    try {
+      await criarProposta({
+        alias: alias.trim(),
+        mensagem: mensagem.trim(),
+        aprovador: aprovador.trim(),
+        contexto: {
+          primeiro_nome: alias.trim().split(/\s+/)[0],
+          atendimentos_anteriores: Number(anteriores) || 0,
+          servico: servico || undefined,
+          aguardando_confirmacao: aguardando,
+        },
+      });
+      setMensagem("");
+      await aoCriar();
+    } catch (e2) {
+      setErro(String(e2?.message || e2));
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  return (
+    <form className="aprov-composer" onSubmit={enviar}>
+      <h3>Chegou mensagem no WhatsApp</h3>
+      <p className="sub">{protecao}</p>
+      <div className="aprov-composer-linha">
+        <label className="campo-rotulado">
+          <span>Como você chama a cliente</span>
+          <input value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Bia" />
+        </label>
+        <label className="campo-rotulado">
+          <span>Sessões anteriores</span>
+          <input value={anteriores} onChange={(e) => setAnteriores(e.target.value)} placeholder="0" inputMode="numeric" />
+        </label>
+        <label className="campo-rotulado">
+          <span>Serviço (se souber)</span>
+          <input value={servico} onChange={(e) => setServico(e.target.value)} placeholder="Drenagem linfática" />
+        </label>
+      </div>
+      <label className="campo-rotulado">
+        <span>O que ela escreveu</span>
+        <textarea rows={3} value={mensagem} onChange={(e) => setMensagem(e.target.value)} placeholder="Cole aqui a mensagem, do jeito que chegou" />
+      </label>
+      <label className="campo-rotulado" style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <input type="checkbox" checked={aguardando} onChange={(e) => setAguardando(e.target.checked)} style={{ width: "auto" }} />
+        <span>Estou esperando ela confirmar um horário</span>
+      </label>
+      {erro && <p className="erro">{erro}</p>}
+      <div>
+        <button className="botao-confirmar" type="submit" disabled={ocupado}>
+          {ocupado ? "Analisando…" : "Ver o que a Emily propõe"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 // ---------------------------------------------------------------- gate e pendências
 function Gate({ gate, modo, aviso, ledger }) {
   const reprovado = !gate.preflight_aprovado;
+  const operacao = gate.modo_operacao === true;
   return (
-    <div className={reprovado ? "aprov-gate reprovado" : "aprov-gate"}>
+    <div className={reprovado && !operacao ? "aprov-gate reprovado" : "aprov-gate"}>
       <div className="aprov-gate-linha">
-        <strong>{reprovado ? "Preflight REPROVADO — modo sintético" : "Preflight aprovado"}</strong>
-        {reprovado && <span className="sub"> · a Emily não oferece horário e o sistema só aceita apelidos "Cliente Demo NN"</span>}
+        <strong>
+          {operacao
+            ? "Operação real — texto redigido antes de gravar"
+            : reprovado
+              ? "Preflight REPROVADO — modo sintético"
+              : "Preflight aprovado"}
+        </strong>
+        {reprovado && !operacao && (
+          <span className="sub"> · o sistema só aceita apelidos "Cliente Demo NN"</span>
+        )}
+        {gate.grade_definida === false && <span className="sub"> · a Emily não oferece horário</span>}
       </div>
-      {reprovado && (
-        // Honestidade sobre o alcance real da proteção: o scanner reconhece FORMATOS
-        // (e-mail, telefone, SSN, data). Ele não sabe reconhecer um nome próprio. Prometer
-        // "nenhum dado real entra" seria mentira, e mentira em aviso de segurança é pior que
-        // aviso nenhum — ensina a confiar no que não protege.
+      {/* A tela precisa dizer o alcance REAL da proteção no modo em que está. Dizer "modo
+          sintético" enquanto se opera de verdade é a tela mentindo sobre si mesma. */}
+      {gate.protecao_dados && <p className="sub aprov-limite">{gate.protecao_dados}</p>}
+      {!gate.protecao_dados && reprovado && (
         <p className="sub aprov-limite">
           O sistema <strong>recusa</strong> e-mail, telefone, SSN e data de nascimento, e só aceita apelidos sintéticos.
           Ele <strong>não sabe</strong> reconhecer o nome de uma pessoa — não digite dado real de cliente aqui.

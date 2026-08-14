@@ -1,20 +1,44 @@
 * { box-sizing: border-box; margin: 0; }
 
+/* Identidade Zatheon — os mesmos tokens do site (drsostenescosta-rgb.github.io/assets/marca).
+   Os nomes antigos (--verde, --fundo…) foram mantidos de propósito: as telas que já existiam
+   adotam a marca inteira sem precisar ser reescritas uma a uma. */
 :root {
-  --verde: #0f766e;
-  --verde-claro: #ccfbf1;
-  --fundo: #f8fafc;
-  --texto: #0f172a;
-  --sub: #64748b;
-  --borda: #e2e8f0;
-  --sidebar-w: 200px;
+  --verde: #1d7a55;
+  --verde-escuro: #14573c;
+  --verde-claro: #e7f2ec;
+  --fundo: #faf8f3;
+  --areia: #f2efe7;
+  --papel: #fff;
+  --texto: #1f2421;
+  --sub: #5b615c;
+  --borda: #e3ded2;
+  --ouro: #806313;
+  --sidebar-w: 236px;
+
+  --sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+/* Base 17px: a Andreia lê isto no celular, entre um atendimento e outro. Fonte pequena aqui
+   não é elegância — é atrito. */
+html { font-size: 17px; }
+
 body {
-  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  letter-spacing: -0.006em;
   background: var(--fundo);
   color: var(--texto);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.015em; line-height: 1.18; }
+h2 { font-size: 1.65rem; }
+h3 { font-size: 1.15rem; }
 
 .layout { display: flex; flex-direction: column; min-height: 100dvh; }
 
@@ -288,3 +312,97 @@ button:disabled { opacity: 0.6; }
 .aprov-tag-escalada { color: #b91c1c; }
 .aprov-tag-descartada { color: #64748b; }
 .aprov-sem-ancora { color: #b45309; }
+
+/* ================================================================
+   Camada de marca Zatheon — aplicada por último, então corrige os
+   tamanhos pequenos que vieram das telas antigas sem reescrevê-las.
+   ================================================================ */
+
+.topbar {
+  background: linear-gradient(180deg, var(--verde) 0%, var(--verde-escuro) 100%);
+  padding: 14px 22px;
+  gap: 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.marca { display: flex; align-items: center; gap: 10px; }
+.marca-simbolo { width: 26px; height: 26px; color: #fff; flex: none; }
+.logo { font-family: var(--serif); font-weight: 600; font-size: 1.3rem; letter-spacing: -0.02em; }
+.logo-sufixo { font-family: var(--sans); font-weight: 500; font-size: 0.72rem; letter-spacing: 0.14em;
+  text-transform: uppercase; opacity: 0.72; margin-left: 2px; }
+.clinica { font-size: 0.86rem; opacity: 0.92; font-weight: 500; }
+
+/* Sidebar: alvo de toque maior e rótulo legível de verdade. */
+.sidebar { background: var(--papel); border-right: 1px solid var(--borda); padding-top: 10px; }
+.item-menu { font-size: 1rem; font-weight: 500; padding: 11px 16px; gap: 11px; border-radius: 0 999px 999px 0; }
+.item-menu.ativo { background: var(--verde-claro); color: var(--verde-escuro); font-weight: 600; }
+.item-icone { font-size: 1.1rem; }
+
+.conteudo { padding: 26px 28px 40px; }
+.painel { background: transparent; }
+.sub { font-size: 0.92rem; color: var(--sub); line-height: 1.5; }
+.selo { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em; padding: 5px 11px; border-radius: 999px;
+  background: var(--verde-claro); color: var(--verde-escuro); }
+.selo-demo { background: #fdf3d7; color: var(--ouro); }
+
+/* Painel de aprovação: hierarquia e respiro. */
+.aprov-cabecalho h2 { font-size: 1.9rem; }
+.aprov-promessa { font-size: 0.98rem; padding: 14px 16px; border-radius: 12px;
+  border-left: 4px solid var(--verde); background: var(--verde-claro); color: var(--verde-escuro); }
+.aprov-gate { padding: 14px 16px; border-radius: 12px; background: var(--papel); }
+.aprov-gate.reprovado { background: #fdfaf1; border-color: #e6d5a8; }
+.aprov-gate-linha { font-size: 0.98rem; }
+.aprov-pendencias { font-size: 0.9rem; margin-left: 20px; }
+.aprov-limite { font-size: 0.9rem; margin-top: 6px; }
+
+.aprov-cartao { border-radius: 14px; padding: 18px 20px; gap: 12px; background: var(--papel);
+  box-shadow: 0 1px 2px rgba(31, 36, 33, 0.05), 0 8px 24px -18px rgba(31, 36, 33, 0.28); }
+.aprov-cartao-topo strong { font-size: 1.12rem; font-weight: 600; }
+.aprov-etiqueta { font-size: 0.75rem; padding: 5px 12px; letter-spacing: 0.01em; }
+.aprov-titulo { font-size: 0.9rem; }
+.aprov-recebida { font-size: 1rem; padding: 11px 15px; border-radius: 14px 14px 14px 4px; line-height: 1.45; }
+.aprov-porque { font-size: 0.93rem; }
+.aprov-regra { font-family: var(--mono); font-size: 0.72rem; background: var(--areia); }
+.aprov-bloqueios { font-size: 0.88rem; }
+.aprov-alerta { font-size: 0.95rem; background: #fdf3d7; color: #7a4a06; padding: 9px 12px; border-radius: 8px; }
+.aprov-agenda { font-size: 0.93rem; }
+.aprov-texto { font-size: 1.02rem; line-height: 1.55; padding: 12px 14px; border-radius: 10px;
+  border-color: var(--borda); background: var(--fundo); }
+.aprov-texto:focus { outline: 2px solid var(--verde); outline-offset: 1px; background: var(--papel); }
+.campo-rotulado > span { font-size: 0.88rem; font-weight: 500; color: var(--sub); }
+.aprov-quem input, .campo-rotulado input { font-size: 1rem; padding: 10px 13px; border-radius: 10px;
+  border: 1px solid var(--borda); font-family: var(--sans); }
+
+.botao-confirmar { background: var(--verde); font-size: 0.98rem; font-weight: 600; padding: 11px 20px;
+  border-radius: 10px; border: 0; color: #fff; cursor: pointer; }
+.botao-confirmar:hover { background: var(--verde-escuro); }
+.botao-leve { font-size: 0.95rem; padding: 10px 17px; border-radius: 10px; border: 1px solid var(--borda);
+  background: var(--papel); color: var(--texto); cursor: pointer; }
+.botao-leve:hover { background: var(--areia); }
+.botao-link { font-size: 0.93rem; color: var(--verde); background: none; border: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; }
+
+.aprov-decididos h3 { font-family: var(--serif); font-size: 1.2rem; }
+.aprov-lembrete { font-size: 0.9rem; }
+
+/* Composer da operação real */
+.aprov-composer { background: var(--papel); border: 1px solid var(--borda); border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 11px; }
+.aprov-composer h3 { font-size: 1.1rem; }
+.aprov-composer-linha { display: flex; gap: 11px; flex-wrap: wrap; }
+.aprov-composer-linha > label { flex: 1 1 160px; }
+.aprov-composer textarea { font-family: var(--sans); font-size: 1rem; padding: 11px 14px;
+  border: 1px solid var(--borda); border-radius: 10px; resize: vertical; width: 100%; }
+
+/* Rodapé com assinatura — a Andreia e a Lohane precisam saber de quem é isto. */
+.rodape-marca { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--borda);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 0.85rem; color: var(--sub); }
+.rodape-marca .marca-simbolo { width: 20px; height: 20px; color: var(--verde); }
+.rodape-marca strong { color: var(--texto); font-weight: 600; }
+.rodape-sep { opacity: 0.4; }
+
+@media (max-width: 640px) {
+  html { font-size: 16px; }
+  .conteudo { padding: 18px 16px 32px; }
+  .aprov-cabecalho h2 { font-size: 1.55rem; }
+  .clinica { font-size: 0.78rem; }
+}

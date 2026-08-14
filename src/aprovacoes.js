@@ -81,6 +81,15 @@ export async function carregarFila() {
   return fila;
 }
 
+/**
+ * Entra uma mensagem REAL na fila. Só existe com a ponte ligada — é o motor que decide,
+ * e é o ledger que registra. Sem ponte, o painel é demonstração e não aceita mensagem nova.
+ */
+export async function criarProposta({ alias, mensagem, contexto = {}, aprovador }) {
+  if (!TEM_PONTE) throw new Error("sem a ponte ligada o painel é só demonstração — suba `npm run api:operacao`");
+  return chamar("/api/proposta", { method: "POST", aprovador, corpo: { canal: "whatsapp", alias, mensagem, contexto } });
+}
+
 export async function enviarDecisao({ id, decisao, aprovador, texto_original, texto_final, motivo_da_decisao }) {
   if (!TEM_PONTE) {
     // Em demo a decisão é local e o painel deixa isso explícito na tela.
