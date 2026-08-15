@@ -72,5 +72,10 @@ test("comando padrão não sobe servidor externo e UI usa RPCs", async () => {
   ]);
   assert.match(pacientes, /criarPaciente/); assert.doesNotMatch(pacientes, /\.insert\(/);
   assert.match(agenda, /reservarConsulta/); assert.match(agenda, /atualizarConsulta/); assert.doesNotMatch(agenda, /Agendar mesmo assim|Confirmar mesmo assim/);
-  assert.match(auth, /Modo owner indisponível/); assert.match(auth, /nenhum dado sintético/);
+  // O título ficou dinâmico ("Modo {modo} indisponível") quando entrou o modo `operacao`. O que
+  // este teste protege não é a frase e sim a garantia: config faltando derruba a tela, em vez de
+  // servir dado sintético fingindo ser o backend da dona.
+  assert.match(auth, /Modo \{modo\} indisponível/); assert.match(auth, /nenhum dado sintético/);
+  // Link mágico NÃO pode criar conta: sem isso, quem descobrisse a URL viraria usuário do Supabase.
+  assert.match(auth, /shouldCreateUser:\s*false/);
 });
