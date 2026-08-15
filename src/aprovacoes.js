@@ -12,6 +12,7 @@
 // O painel NUNCA envia mensagem. Não existe função de envio aqui, de propósito.
 
 import filaDemo from "./demo/fila-andreia.json";
+import { tokenDaSessao } from "./supabase.js";
 
 export const API = import.meta.env.VITE_APROVACOES_API || "";
 export const TEM_PONTE = Boolean(API);
@@ -37,6 +38,11 @@ export function salvarAprovador(nome) {
 async function chamar(caminho, { method = "GET", corpo = null, aprovador = "" } = {}) {
   const headers = { "Content-Type": "application/json" };
   if (aprovador) headers["X-ClinicNow-Operador"] = aprovador;
+  // Na nuvem, quem manda é a sessão: a ponte hospedada recusa requisição sem identidade (401) e
+  // ignora o header de operador acima — o nome do aprovador vem da allowlist ligada ao login,
+  // não de um campo digitável. Localmente não há token e o header continua sendo a identificação.
+  const token = await tokenDaSessao();
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${API}${caminho}`, {
     method,
     headers,

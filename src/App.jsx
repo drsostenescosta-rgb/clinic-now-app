@@ -69,7 +69,11 @@ function AppInterno() {
   const [menuAberto, setMenuAberto] = useState(false);
   const [agendaVersion, setAgendaVersion] = useState(0);
 
-  const ativo = MODULOS.find((m) => m.id === tab);
+  // Modo operação = só o Painel de Aprovação. As outras abas leem tabelas que a Andreia ainda
+  // não tem permissão para ver; aba que dá erro ao abrir ensina a desconfiar do sistema inteiro.
+  const soAprovacoes = modo === "operacao";
+  const modulos = soAprovacoes ? MODULOS.filter((m) => m.id === "aprovacoes") : MODULOS;
+  const ativo = modulos.find((m) => m.id === tab);
 
   function irPara(id) {
     setTab(id);
@@ -94,13 +98,13 @@ function AppInterno() {
           </span>
         </span>
         <span className="clinica">
-          {modo === "synthetic" ? `${NOME_CLINICA} · agenda e pacientes no navegador` : `${NOME_CLINICA} · acesso autenticado`}
+          {modo === "synthetic" ? `${NOME_CLINICA} · agenda e pacientes no navegador` : modo === "operacao" ? `${NOME_CLINICA} · aprovação assistida` : `${NOME_CLINICA} · acesso autenticado`}
         </span>
-        {modo === "owner" && <button className="botao-leve" onClick={() => supabase.auth.signOut()}>Sair</button>}
+        {(modo === "owner" || modo === "operacao") && <button className="botao-leve" onClick={() => supabase.auth.signOut()}>Sair</button>}
       </header>
       <div className="corpo">
         <nav className={menuAberto ? "sidebar aberta" : "sidebar"} aria-label="Módulos">
-          {MODULOS.map((m) => (
+          {modulos.map((m) => (
             <button
               key={m.id}
               className={tab === m.id ? "item-menu ativo" : "item-menu"}
@@ -117,12 +121,12 @@ function AppInterno() {
         {menuAberto && <div className="sombra-menu" onClick={() => setMenuAberto(false)} />}
         <main className="conteudo">
           {tab === "aprovacoes" && <Aprovacoes />}
-          {tab === "agenda" && <Agenda key={agendaVersion} />}
-          {tab === "emily" && <Emily onAgendou={() => setAgendaVersion((v) => v + 1)} />}
-          {tab === "pacientes" && <Pacientes />}
-          {tab === "servicos" && <Servicos />}
-          {tab === "financeiro" && <Financeiro />}
-          {tab === "config" && <Config />}
+          {!soAprovacoes && tab === "agenda" && <Agenda key={agendaVersion} />}
+          {!soAprovacoes && tab === "emily" && <Emily onAgendou={() => setAgendaVersion((v) => v + 1)} />}
+          {!soAprovacoes && tab === "pacientes" && <Pacientes />}
+          {!soAprovacoes && tab === "servicos" && <Servicos />}
+          {!soAprovacoes && tab === "financeiro" && <Financeiro />}
+          {!soAprovacoes && tab === "config" && <Config />}
           {ativo?.embreve && <EmBreve nome={ativo.label} icone={ativo.icon} desc={ativo.embreve} />}
           <RodapeMarca />
         </main>

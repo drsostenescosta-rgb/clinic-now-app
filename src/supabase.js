@@ -3,18 +3,38 @@ import { criarSupabaseSintetico } from "./localSupabase.js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_KEY;
-export const MODO = import.meta.env.VITE_CLINICNOW_MODE === "owner" ? "owner" : "synthetic";
-export const OWNER_CONFIG_ERROR = MODO === "owner" && (!url || !key)
-  ? "Modo owner selecionado, mas VITE_SUPABASE_URL/VITE_SUPABASE_KEY não foram configurados. Nenhum backend sintético será usado como substituto."
+/**
+ * Três modos, e a diferença entre eles é de QUEM é o dado e ONDE ele mora:
+ *
+ *   synthetic — tudo no navegador, dado inventado. Padrão seguro, não faz rede.
+ *   owner     — o ClinicNow inteiro contra o Supabase, com login da dona.
+ *   operacao  — SÓ o Painel de Aprovação, hospedado, falando com a ponte na nuvem.
+ *
+ * `operacao` existe separado de `owner` porque as outras abas (agenda, pacientes, financeiro)
+ * leem tabelas que a Andreia ainda não tem permissão para ver. Mostrar aba que dá erro ao abrir
+ * é pior do que não mostrar aba: ensina a pessoa a desconfiar do sistema inteiro.
+ */
+const MODO_BRUTO = import.meta.env.VITE_CLINICNOW_MODE;
+export const MODO = MODO_BRUTO === "owner" ? "owner" : MODO_BRUTO === "operacao" ? "operacao" : "synthetic";
+export const EXIGE_LOGIN = MODO === "owner" || MODO === "operacao";
+export const OWNER_CONFIG_ERROR = EXIGE_LOGIN && (!url || !key)
+  ? `Modo ${MODO} selecionado, mas VITE_SUPABASE_URL/VITE_SUPABASE_KEY não foram configurados. Nenhum backend sintético será usado como substituto.`
   : "";
 
-// Sintético é o padrão e não faz rede. Owner só existe com sessão autenticada,
+// Sintético é o padrão e não faz rede. Os modos com login só existem com sessão autenticada,
 // RLS e a RPC transacional aplicada pela dona no projeto correto.
 const indisponivel = {
-  auth: { async getSession() { return { data: { session: null }, error: new Error(OWNER_CONFIG_ERROR) }; }, onAuthStateChange() { return { data: { subscription: { unsubscribe() {} } } }; }, async signInWithPassword() { return { error: new Error(OWNER_CONFIG_ERROR) }; }, async signOut() { return { error: null }; } },
+  auth: { async getSession() { return { data: { session: null }, error: new Error(OWNER_CONFIG_ERROR) }; }, onAuthStateChange() { return { data: { subscription: { unsubscribe() {} } } }; }, async signInWithPassword() { return { error: new Error(OWNER_CONFIG_ERROR) }; }, async signInWithOtp() { return { error: new Error(OWNER_CONFIG_ERROR) }; }, async signOut() { return { error: null }; } },
   from() { throw new Error(OWNER_CONFIG_ERROR); }, async rpc() { return { data: null, error: new Error(OWNER_CONFIG_ERROR) }; },
 };
 export const supabase = MODO === "synthetic" ? criarSupabaseSintetico() : OWNER_CONFIG_ERROR ? indisponivel : createClient(url, key);
+
+/** Token da sessão atual, para a ponte na nuvem. Null quando não há login. */
+export async function tokenDaSessao() {
+  if (!EXIGE_LOGIN) return null;
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.access_token || null;
+}
 
 export async function reservarConsulta({ paciente_nome, servico_id, inicio, origem = "manual" }) {
   const { data, error } = await supabase.rpc("reservar_consulta", { p_paciente_nome: paciente_nome, p_servico_id: servico_id, p_inicio: new Date(inicio).toISOString(), p_origem: origem });

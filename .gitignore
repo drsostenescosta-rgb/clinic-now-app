@@ -5,3 +5,4 @@ dist/
 
 # Repositório embutido de outra sessão — não faz parte deste app.
 codex_deepseek_proxy/
+.vercel

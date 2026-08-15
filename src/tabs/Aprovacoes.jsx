@@ -54,6 +54,13 @@ export default function Aprovacoes() {
 
   function aoDecidir(id, registro) {
     setDecididos((d) => ({ ...d, [id]: registro }));
+    // Recarrega o estado depois de decidir. Sem isto o contador do ledger ficava parado no
+    // número anterior — e esse contador é justamente o que diz à Andreia que a decisão dela foi
+    // registrada. Visto rodando na nuvem: o evento estava gravado no banco e a tela dizia
+    // "1 evento" depois de dois. Painel de auditoria que mostra número velho não audita nada.
+    // O catch é silencioso de propósito: a decisão JÁ foi gravada, e falhar o refresh não pode
+    // pintar de vermelho uma operação que deu certo.
+    recarregar().catch(() => {});
   }
 
   if (carregando) return <div className="painel"><p className="sub">Carregando a fila…</p></div>;
