@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Como usar o painel — Andréia Carvalho Aesthetics</title>
+<meta name="description" content="Manual do Painel de Aprovação. Como entrar, como usar no dia a dia e o que o sistema nunca faz sozinho." />
+<meta name="theme-color" content="#0f766e" />
+<style>
+  /* Fonte grande de propósito: isto é lido no celular, entre um atendimento e outro. */
+  :root {
+    --tinta: #12211f;
+    --tinta-fraca: #4a5f5c;
+    --fundo: #fbf9f6;
+    --papel: #ffffff;
+    --linha: #e2ded7;
+    --verde: #0f766e;
+    --verde-claro: #eaf5f3;
+    --alerta: #b45309;
+    --alerta-claro: #fdf6ec;
+    --vermelho: #b91c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --tinta: #eef2f1; --tinta-fraca: #a8b8b5; --fundo: #12181a; --papel: #1a2224;
+      --linha: #2c3739; --verde: #5eead4; --verde-claro: #16302d;
+      --alerta: #fbbf24; --alerta-claro: #2e2410; --vermelho: #fca5a5;
+    }
+  }
+  :root[data-theme="dark"] {
+    --tinta: #eef2f1; --tinta-fraca: #a8b8b5; --fundo: #12181a; --papel: #1a2224;
+    --linha: #2c3739; --verde: #5eead4; --verde-claro: #16302d;
+    --alerta: #fbbf24; --alerta-claro: #2e2410; --vermelho: #fca5a5;
+  }
+  :root[data-theme="light"] {
+    --tinta: #12211f; --tinta-fraca: #4a5f5c; --fundo: #fbf9f6; --papel: #ffffff;
+    --linha: #e2ded7; --verde: #0f766e; --verde-claro: #eaf5f3;
+    --alerta: #b45309; --alerta-claro: #fdf6ec; --vermelho: #b91c1c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fundo); color: var(--tinta);
+    font: 400 19px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .env { max-width: 680px; margin: 0 auto; padding: 28px 22px 80px; }
+
+  header { background: var(--verde); color: #fff; padding: 34px 22px 30px; }
+  header .env { padding: 0; max-width: 680px; margin: 0 auto; }
+  header h1 { margin: 0 0 6px; font-size: 30px; line-height: 1.2; letter-spacing: -.01em; }
+  header p { margin: 0; opacity: .92; font-size: 17px; }
+
+  h2 {
+    font-size: 25px; line-height: 1.25; margin: 44px 0 12px;
+    padding-top: 22px; border-top: 1px solid var(--linha);
+  }
+  h2:first-of-type { border-top: 0; padding-top: 0; margin-top: 30px; }
+  h3 { font-size: 20px; margin: 26px 0 8px; }
+  p { margin: 0 0 14px; }
+  strong { font-weight: 650; }
+
+  ol, ul { margin: 0 0 16px; padding-left: 24px; }
+  li { margin-bottom: 10px; }
+
+  .passos { list-style: none; padding: 0; counter-reset: passo; }
+  .passos li {
+    counter-increment: passo; position: relative;
+    padding: 14px 16px 14px 58px; margin-bottom: 10px;
+    background: var(--papel); border: 1px solid var(--linha); border-radius: 12px;
+  }
+  .passos li::before {
+    content: counter(passo); position: absolute; left: 16px; top: 13px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--verde); color: #fff;
+    display: grid; place-items: center; font-weight: 700; font-size: 15px;
+  }
+  @media (prefers-color-scheme: dark) { .passos li::before { color: #06201d; } }
+  :root[data-theme="dark"] .passos li::before { color: #06201d; }
+
+  .caixa {
+    background: var(--verde-claro); border-left: 4px solid var(--verde);
+    padding: 16px 18px; border-radius: 0 12px 12px 0; margin: 18px 0;
+  }
+  .caixa.atencao { background: var(--alerta-claro); border-left-color: var(--alerta); }
+  .caixa p:last-child { margin-bottom: 0; }
+
+  .link-grande {
+    display: block; background: var(--papel); border: 2px solid var(--verde);
+    color: var(--verde); text-decoration: none; font-weight: 650;
+    padding: 16px 18px; border-radius: 12px; margin: 14px 0; word-break: break-word;
+  }
+  .link-grande span { display: block; font-weight: 400; font-size: 15px; color: var(--tinta-fraca); margin-top: 3px; }
+
+  .tabela { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 17px; }
+  .tabela th, .tabela td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+  .tabela th { font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--tinta-fraca); }
+  .rolagem { overflow-x: auto; }
+
+  .rodape { margin-top: 50px; padding-top: 22px; border-top: 1px solid var(--linha); color: var(--tinta-fraca); font-size: 16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="env">
+    <h1>Como usar o painel</h1>
+    <p>Andréia Carvalho Aesthetics · guia rápido</p>
+  </div>
+</header>
+
+<div class="env">
+
+  <p>Este painel te ajuda a responder as mensagens das clientes mais rápido, sem você
+  perder o seu jeito de falar. Ele <strong>prepara</strong> a resposta. Quem decide e quem
+  envia continua sendo você.</p>
+
+  <div class="caixa">
+    <p><strong>A regra que não muda:</strong> o painel nunca manda mensagem sozinho para
+    ninguém. Ele te mostra o texto pronto, você lê, aprova, copia e cola no WhatsApp.</p>
+  </div>
+
+  <h2>Como entrar</h2>
+
+  <a class="link-grande" href="https://clinic-now-app.vercel.app">clinic-now-app.vercel.app
+    <span>o endereço do painel — funciona no celular</span></a>
+
+  <ol class="passos">
+    <li>Abra o link acima.</li>
+    <li>Digite o seu e-mail: <strong>andreiacarvalho1812@gmail.com</strong></li>
+    <li>Toque em <strong>“Receber link de acesso”</strong>.</li>
+    <li>Abra o seu e-mail e clique no link que chegou. Pronto — você está dentro.</li>
+  </ol>
+
+  <p><strong>Não tem senha.</strong> Toda vez que precisar entrar de novo, é esse mesmo
+  caminho: e-mail, link, clique.</p>
+
+  <div class="caixa">
+    <p><strong>Deixe na tela inicial do celular.</strong> Com o painel aberto no Safari:
+    toque no botão de compartilhar (o quadradinho com a seta para cima) e escolha
+    <strong>“Adicionar à Tela de Início”</strong>. Vira um ícone e abre como aplicativo.</p>
+  </div>
+
+  <h2>O dia a dia</h2>
+
+  <ol class="passos">
+    <li>Chegou mensagem de cliente no seu WhatsApp. <strong>Copie</strong> a mensagem dela.</li>
+    <li>Abra o painel e <strong>cole</strong> no campo “O que ela escreveu”.</li>
+    <li>Se você souber, preencha o primeiro nome dela e o serviço. Se não souber, deixe em branco.</li>
+    <li>Toque em <strong>“Ver o que a Emily propõe”</strong>.</li>
+    <li>Leia o texto que apareceu. Está bom? Toque em <strong>Aprovar</strong>. Quer mudar
+      alguma palavra? Mude ali mesmo antes de aprovar.</li>
+    <li>Toque em <strong>“copiar texto”</strong> e cole no WhatsApp da cliente.</li>
+  </ol>
+
+  <p>Leva menos tempo do que parece. Em dia cheio, o ganho é justamente aí: você não precisa
+  pensar na resposta do zero trinta vezes por dia.</p>
+
+  <h2>Os três botões</h2>
+
+  <div class="rolagem">
+  <table class="tabela">
+    <tr><th>Botão</th><th>Quando usar</th></tr>
+    <tr>
+      <td><strong>Aprovar</strong></td>
+      <td>A resposta está boa. Você copia e cola no WhatsApp.</td>
+    </tr>
+    <tr>
+      <td><strong>Escalar</strong></td>
+      <td>Essa é para você responder pessoalmente. O painel guarda o registro e sai da frente.</td>
+    </tr>
+    <tr>
+      <td><strong>Descartar</strong></td>
+      <td>Não serve. Nada é enviado e fica registrado que você descartou.</td>
+    </tr>
+  </table>
+  </div>
+
+  <p>Se você <strong>mudar o texto</strong> antes de aprovar, o painel percebe e guarda as duas
+  versões: a que a Emily escreveu e a que você aprovou. É assim que ela vai aprendendo o seu
+  jeito de falar.</p>
+
+  <h2>O que a Emily nunca responde sozinha</h2>
+
+  <p>Tem assunto que ela não toca. Nesses casos ela não inventa resposta — ela avisa que é com
+  você:</p>
+
+  <ul>
+    <li>Qualquer <strong>dúvida clínica</strong> — “o que é melhor pro meu caso?”, contraindicação, gravidez</li>
+    <li>Qualquer sinal de <strong>urgência</strong> ou intercorrência de pós-operatório</li>
+    <li><strong>Pergunta pessoal</strong> para você</li>
+    <li><strong>Desconto</strong> ou valor fora da tabela</li>
+    <li><strong>Cancelamento em cima da hora</strong> na sexta ou no sábado</li>
+    <li>Mensagem em <strong>inglês</strong></li>
+    <li>Qualquer coisa que ela não saiba</li>
+  </ul>
+
+  <div class="caixa atencao">
+    <p><strong>Duas coisas que ela nunca faz, aconteça o que acontecer:</strong> marcar duas
+    clientes no mesmo horário, e considerar “tá bom” como confirmação. Se a cliente responder
+    só “ok” ou “tá bom”, a Emily pergunta de novo, pedindo um sim ou não.</p>
+  </div>
+
+  <h2>O seu site</h2>
+
+  <a class="link-grande" href="https://site-andreia-carvalho.vercel.app">site-andreia-carvalho.vercel.app
+    <span>seus procedimentos, valores e resultados</span></a>
+
+  <p>Ele está no ar em <strong>português, espanhol e inglês</strong> — a versão em espanhol
+  fica em <strong>/es</strong> e a em inglês em <strong>/en</strong>.</p>
+
+  <p><strong>Coloque esse link na bio do Instagram.</strong> É lá que a cliente vê o que você
+  faz e quanto custa, sem você precisar explicar de novo em cada conversa.</p>
+
+  <h2>Se der algum problema</h2>
+
+  <div class="rolagem">
+  <table class="tabela">
+    <tr><th>O que aconteceu</th><th>O que fazer</th></tr>
+    <tr>
+      <td>O link de acesso não chegou no e-mail</td>
+      <td>Veja na caixa de spam. Se não estiver lá, fale com o Sostenes — o e-mail precisa estar cadastrado.</td>
+    </tr>
+    <tr>
+      <td>Diz que a conta não está autorizada</td>
+      <td>Fale com o Sostenes. É cadastro, resolve em um minuto.</td>
+    </tr>
+    <tr>
+      <td>A tela diz que não consegue falar com o sistema</td>
+      <td>Feche e abra de novo. Se continuar, mande print para o Sostenes.</td>
+    </tr>
+    <tr>
+      <td>A resposta veio esquisita</td>
+      <td><strong>Não aprove.</strong> Escale ou descarte, e conte para o Sostenes o que ela escreveu. É assim que a gente corrige.</td>
+    </tr>
+  </table>
+  </div>
+
+  <h2>O que ainda falta (e depende de você)</h2>
+
+  <p>Duas coisas suas destravam o resto:</p>
+
+  <ol class="passos">
+    <li><strong>Ler as três frases prontas</strong> que o Sostenes te mandou e dizer se estão
+      com a sua cara — ou mudar para as suas palavras.</li>
+    <li><strong>Contar três conversas que viraram agendamento e três que não viraram.</strong>
+      Sem nome de cliente: só o que aconteceu e o que você acha que fez a diferença.</li>
+  </ol>
+
+  <p>Pode responder por áudio, do seu jeito. São dez minutos e é o que falta para o sistema
+  começar a trabalhar de verdade por você.</p>
+
+  <p class="rodape">
+    ClinicNow é um produto Zatheon · Piloto — operação assistida<br />
+    Nenhuma mensagem é enviada sem você aprovar.
+  </p>
+
+</div>
+</body>
+</html>
