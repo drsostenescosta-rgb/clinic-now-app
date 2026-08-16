@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Emily from "./tabs/Emily.jsx";
 import Aprovacoes from "./tabs/Aprovacoes.jsx";
+import PedidosSite from "./tabs/PedidosSite.jsx";
 import Agenda from "./tabs/Agenda.jsx";
 import Pacientes from "./tabs/Pacientes.jsx";
 import Servicos from "./tabs/Servicos.jsx";
@@ -48,6 +49,8 @@ function RodapeMarca() {
 const MODULOS = [
   // Aprovações vem primeiro: na Fase 1 é a tela onde a dona realmente trabalha.
   { id: "aprovacoes", label: "Aprovações", icon: "✅" },
+  // Logo depois de Aprovações: é a outra caixa de entrada onde tem cliente esperando.
+  { id: "pedidos", label: "Pedidos do site", icon: "🌐" },
   { id: "agenda", label: "Agenda", icon: "📅" },
   { id: "emily", label: "Emily", icon: "💬" },
   { id: "pacientes", label: "Pacientes", icon: "🧑‍⚕️" },
@@ -72,7 +75,7 @@ function AppInterno() {
   // Modo operação = só o Painel de Aprovação. As outras abas leem tabelas que a Andreia ainda
   // não tem permissão para ver; aba que dá erro ao abrir ensina a desconfiar do sistema inteiro.
   const soAprovacoes = modo === "operacao";
-  const modulos = soAprovacoes ? MODULOS.filter((m) => m.id === "aprovacoes") : MODULOS;
+  const modulos = soAprovacoes ? MODULOS.filter((m) => m.id === "aprovacoes" || m.id === "pedidos") : MODULOS;
   const ativo = modulos.find((m) => m.id === tab);
 
   function irPara(id) {
@@ -121,6 +124,7 @@ function AppInterno() {
         {menuAberto && <div className="sombra-menu" onClick={() => setMenuAberto(false)} />}
         <main className="conteudo">
           {tab === "aprovacoes" && <Aprovacoes />}
+          {tab === "pedidos" && <PedidosSite />}
           {!soAprovacoes && tab === "agenda" && <Agenda key={agendaVersion} />}
           {!soAprovacoes && tab === "emily" && <Emily onAgendou={() => setAgendaVersion((v) => v + 1)} />}
           {!soAprovacoes && tab === "pacientes" && <Pacientes />}
