@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>O que você precisa fazer — Andréia Carvalho Aesthetics</title>
+<meta name="description" content="Passo a passo com vídeo para aparecer no Google, receber avaliações e deixar Instagram e WhatsApp prontos." />
+<meta name="theme-color" content="#0f766e" />
+<style>
+  :root {
+    --tinta:#12211f; --tinta-fraca:#4a5f5c; --fundo:#fbf9f6; --papel:#fff; --linha:#e2ded7;
+    --verde:#0f766e; --verde-claro:#eaf5f3; --alerta:#b45309; --alerta-claro:#fdf6ec;
+    --feito:#15803d; --feito-claro:#eef8f0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --tinta:#eef2f1; --tinta-fraca:#a8b8b5; --fundo:#12181a; --papel:#1a2224; --linha:#2c3739;
+            --verde:#5eead4; --verde-claro:#16302d; --alerta:#fbbf24; --alerta-claro:#2e2410;
+            --feito:#4ade80; --feito-claro:#142c1c; }
+  }
+  :root[data-theme="dark"] { --tinta:#eef2f1; --tinta-fraca:#a8b8b5; --fundo:#12181a; --papel:#1a2224; --linha:#2c3739; --verde:#5eead4; --verde-claro:#16302d; --alerta:#fbbf24; --alerta-claro:#2e2410; --feito:#4ade80; --feito-claro:#142c1c; }
+  :root[data-theme="light"] { --tinta:#12211f; --tinta-fraca:#4a5f5c; --fundo:#fbf9f6; --papel:#fff; --linha:#e2ded7; --verde:#0f766e; --verde-claro:#eaf5f3; --alerta:#b45309; --alerta-claro:#fdf6ec; --feito:#15803d; --feito-claro:#eef8f0; }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fundo); color:var(--tinta);
+    font:400 19px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; -webkit-text-size-adjust:100%; }
+  .env { max-width:680px; margin:0 auto; padding:24px 20px 90px; }
+
+  header { background:var(--verde); color:#fff; padding:32px 20px 26px; }
+  header .in { max-width:680px; margin:0 auto; }
+  header h1 { margin:0 0 6px; font-size:29px; line-height:1.2; }
+  header p { margin:0; opacity:.93; font-size:17px; }
+
+  .barra-wrap { max-width:680px; margin:0 auto; padding:14px 20px 0; }
+  .barra { height:12px; background:var(--linha); border-radius:99px; overflow:hidden; }
+  .barra i { display:block; height:100%; width:0; background:var(--feito); transition:width .3s; }
+  .barra-txt { font-size:16px; color:var(--tinta-fraca); margin:8px 0 0; }
+
+  .bloco { background:var(--papel); border:1px solid var(--linha); border-radius:16px; padding:20px; margin:22px 0; }
+  .bloco > h2 { margin:0 0 4px; font-size:23px; line-height:1.25; }
+  .bloco > .por-que { margin:0 0 16px; color:var(--tinta-fraca); font-size:17px; }
+  .etiqueta { display:inline-block; background:var(--verde-claro); color:var(--verde); font-size:14px;
+    font-weight:700; letter-spacing:.05em; text-transform:uppercase; padding:5px 11px; border-radius:99px; margin-bottom:10px; }
+
+  .item { display:flex; gap:13px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--linha); }
+  .item:first-of-type { border-top:0; }
+  .item input { appearance:none; flex:0 0 30px; width:30px; height:30px; margin:1px 0 0; border:2px solid var(--linha);
+    border-radius:9px; background:var(--papel); cursor:pointer; position:relative; }
+  .item input:checked { background:var(--feito); border-color:var(--feito); }
+  .item input:checked::after { content:"✓"; position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-size:19px; font-weight:800; }
+  .item label { cursor:pointer; }
+  .item input:checked + label { opacity:.5; text-decoration:line-through; }
+  .item .dica { display:block; font-size:16px; color:var(--tinta-fraca); text-decoration:none; margin-top:3px; }
+
+  .video { display:flex; gap:14px; align-items:center; text-decoration:none; color:inherit;
+    background:var(--fundo); border:1px solid var(--linha); border-radius:13px; padding:11px; margin:14px 0 4px; }
+  .video .play { flex:0 0 62px; width:62px; height:62px; border-radius:50%; background:var(--verde); color:#fff;
+    display:grid; place-items:center; }
+  @media (prefers-color-scheme: dark) { .video .play { color:#06201d; } }
+  :root[data-theme="dark"] .video .play { color:#06201d; }
+  .video b { display:block; font-size:16px; line-height:1.35; }
+  .video span { display:block; font-size:15px; color:var(--tinta-fraca); margin-top:3px; }
+
+  .copiar { background:var(--fundo); border:1px dashed var(--verde); border-radius:13px; padding:15px; margin:14px 0; }
+  .copiar h3 { margin:0 0 9px; font-size:18px; }
+  .copiar pre { margin:0 0 11px; white-space:pre-wrap; word-break:break-word; font:400 17px/1.55 inherit; }
+  .copiar button { background:var(--verde); color:#fff; border:0; border-radius:10px; padding:12px 20px;
+    font:650 17px inherit; cursor:pointer; width:100%; }
+  @media (prefers-color-scheme: dark) { .copiar button { color:#06201d; } }
+  :root[data-theme="dark"] .copiar button { color:#06201d; }
+  .falta { background:var(--alerta-claro); border-left:4px solid var(--alerta); padding:14px 16px; border-radius:0 12px 12px 0; margin:14px 0; }
+  .falta p:last-child { margin-bottom:0; }
+  p { margin:0 0 13px; }
+  .rodape { margin-top:44px; padding-top:20px; border-top:1px solid var(--linha); color:var(--tinta-fraca); font-size:16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="in">
+    <h1>O que você precisa fazer</h1>
+    <p>Cada coisa tem um vídeo. Vai marcando conforme terminar.</p>
+  </div>
+</header>
+
+<div class="barra-wrap">
+  <div class="barra"><i id="barra"></i></div>
+  <p class="barra-txt"><span id="contador">0 de 0</span> · marcado fica salvo neste celular</p>
+</div>
+
+<div class="env">
+
+  <!-- ---------------------------------------------------------------- Google -->
+  <div class="bloco">
+    <span class="etiqueta">Comece por aqui</span>
+    <h2>1. Aparecer no Google</h2>
+    <p class="por-que">É de graça e é o que faz alguém de Leominster te achar procurando
+      “drenagem linfática perto de mim”. Hoje você não aparece. É o item que mais traz cliente nova.</p>
+
+    <a class="video" href="https://www.youtube.com/watch?v=z5o_qiyuMGo" target="_blank" rel="noopener">
+      <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></span>
+      <span><b>Como criar o perfil da sua empresa no Google My Business</b>
+        <span>Tutorial passo a passo 2026 · em português</span></span>
+    </a>
+
+    <div class="item"><input type="checkbox" id="g1" /><label for="g1">Entrar em <b>google.com/business</b> com o seu e-mail
+      <span class="dica">andreiacarvalho1812@gmail.com — o mesmo do painel</span></label></div>
+    <div class="item"><input type="checkbox" id="g2" /><label for="g2">Colocar o nome do negócio
+      <span class="dica">Andréia Carvalho Aesthetics</span></label></div>
+    <div class="item"><input type="checkbox" id="g3" /><label for="g3">Escolher a categoria
+      <span class="dica">Procure por “Esteticista”. Depois adicione “Spa” e “Massagem terapêutica” como categorias extras</span></label></div>
+    <div class="item"><input type="checkbox" id="g4" /><label for="g4">Colocar o endereço, o telefone e o site
+      <span class="dica">Está tudo pronto logo abaixo, é só copiar</span></label></div>
+    <div class="item"><input type="checkbox" id="g5" /><label for="g5">Colocar os horários de atendimento
+      <span class="dica">Também está pronto abaixo</span></label></div>
+    <div class="item"><input type="checkbox" id="g6" /><label for="g6">Fazer a verificação que o Google pedir
+      <span class="dica">Costuma ser vídeo curto do local, ou carta pelo correio. Sem isso o perfil não fica público</span></label></div>
+    <div class="item"><input type="checkbox" id="g7" /><label for="g7">Colocar fotos: você, a sala, a maca, os aparelhos
+      <span class="dica">Perfil com foto recebe muito mais clique. Pode usar as mesmas do Instagram</span></label></div>
+
+    <div class="copiar">
+      <h3>Contato — copie e cole</h3>
+      <pre id="c-contato">Andréia Carvalho Aesthetics
+54 Main Street, 1º piso, sala 001A
+Leominster, MA [SEU ZIP CODE]
+(978) 600-3658
+https://site-andreia-carvalho.vercel.app</pre>
+      <button data-copiar="c-contato">Copiar</button>
+    </div>
+
+    <div class="falta">
+      <p><b>Só isto falta você preencher:</b> o <b>ZIP code</b> da clínica. Eu não tenho esse número
+        e não quis inventar — endereço errado no Google manda cliente para o lugar errado.</p>
+    </div>
+
+    <div class="copiar">
+      <h3>Horários — copie e cole</h3>
+      <pre id="c-horarios">Segunda: 14:00 – 20:00
+Terça: 11:00 – 20:00
+Quarta: 10:30 – 20:00
+Quinta: 10:00 – 20:00
+Sexta: 10:00 – 20:00
+Sábado: 10:00 – 20:00
+Domingo: 10:30 – 15:00</pre>
+      <button data-copiar="c-horarios">Copiar</button>
+    </div>
+
+    <div class="falta">
+      <p><b>Confira sexta e sábado.</b> No questionário você escreveu que abre às 8:00, mas também
+        que vai à academia das 7:30 às 10:00. Coloquei 10:00 para não marcar cliente em cima da
+        academia. Se você vai à academia só em alguns dias, me diz quais — dá para recuperar essas horas.</p>
+    </div>
+
+    <div class="copiar">
+      <h3>Descrição do negócio — copie e cole</h3>
+      <pre id="c-desc">Massoterapeuta e esteticista há 10 anos, em Leominster.
+
+Drenagem linfática, dreno detox, pós-operatório, massagem relaxante, massoterapia masculina, EMSzero, ultracavitação e radiofrequência.
+
+Todo primeiro atendimento começa por uma avaliação — é nela que decidimos juntas o que faz sentido para você.
+
+Atendo em português e espanhol. Também recebo quem fala inglês, com apoio de tradução.
+
+Levar autoestima e autocuidado para você é a minha prioridade.</pre>
+      <button data-copiar="c-desc">Copiar</button>
+    </div>
+
+    <div class="copiar">
+      <h3>Serviços e valores — copie e cole</h3>
+      <pre id="c-servicos">Dreno Detox — 60 min — US$ 60
+Dreno Detox Turbo — 100 min — US$ 100
+Drenagem linfática — 60 min — US$ 60
+Massagem relaxante — 70 min — US$ 70
+Massoterapia masculina — 70 min — US$ 70
+Masculina com fortalecimento — 60 min — US$ 100
+Drenagem + EMSzero — 60 min — US$ 100
+Tecnologias — 60 min — US$ 100
+Ultracavitação — por área — US$ 50
+Radiofrequência — por área — US$ 50</pre>
+      <button data-copiar="c-servicos">Copiar</button>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------------------- Avaliações -->
+  <div class="bloco">
+    <span class="etiqueta">Depois do passo 1</span>
+    <h2>2. Começar a receber avaliações</h2>
+    <p class="por-que">Avaliação no Google é o que faz quem não te conhece confiar em você. E só
+      aparece depois que o perfil existe — por isso este passo vem depois do primeiro.</p>
+
+    <div class="item"><input type="checkbox" id="a1" /><label for="a1">No seu perfil do Google, pegar o <b>link de avaliação</b>
+      <span class="dica">Fica em “Peça avaliações”. É um link curto que você manda pronto</span></label></div>
+    <div class="item"><input type="checkbox" id="a2" /><label for="a2">Mandar o link para <b>10 clientes que você sabe que gostaram</b>
+      <span class="dica">Uma por uma, no WhatsApp. Não mande para lista</span></label></div>
+    <div class="item"><input type="checkbox" id="a3" /><label for="a3">Me mandar o link de avaliação
+      <span class="dica">Coloco um botão no seu site para pedir avaliação sozinho</span></label></div>
+
+    <div class="copiar">
+      <h3>Mensagem para pedir avaliação — copie e cole</h3>
+      <pre id="c-review">Oi! Que bom te ver por aqui de novo.
+
+Se o atendimento te fez bem, você me ajudaria muito deixando um comentário no Google. Leva um minutinho e é o que faz outras mulheres me encontrarem.
+
+[cole aqui o seu link de avaliação]
+
+Obrigada de coração.</pre>
+      <button data-copiar="c-review">Copiar</button>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------------------- Instagram -->
+  <div class="bloco">
+    <span class="etiqueta">Para a Emily responder</span>
+    <h2>3. Deixar o Instagram pronto</h2>
+    <p class="por-que">Sem estes dois ajustes, nenhum sistema consegue responder as mensagens que
+      chegam no seu Instagram. Você <b>não perde nada</b> e continua usando o app do mesmo jeito.</p>
+
+    <a class="video" href="https://www.youtube.com/watch?v=s06xVFip1OI" target="_blank" rel="noopener">
+      <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></span>
+      <span><b>Como mudar conta pessoal para profissional no Instagram</b>
+        <span>vídeo curto, em português</span></span>
+    </a>
+
+    <div class="item"><input type="checkbox" id="i1" /><label for="i1">Deixar a conta como <b>profissional</b>
+      <span class="dica">Configurações → Tipo de conta → Mudar para profissional. Escolha a categoria de estética</span></label></div>
+
+    <a class="video" href="https://www.youtube.com/watch?v=YcI7p3SM1t8" target="_blank" rel="noopener">
+      <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></span>
+      <span><b>Como conectar Instagram com página do Facebook</b>
+        <span>atualizado · em português</span></span>
+    </a>
+
+    <div class="item"><input type="checkbox" id="i2" /><label for="i2">Vincular a uma <b>Página do Facebook</b>
+      <span class="dica">Se você não tiver uma página, o vídeo mostra como criar. Leva 5 minutos</span></label></div>
+    <div class="item"><input type="checkbox" id="i3" /><label for="i3">Colocar o <b>link do seu site</b> na bio
+      <span class="dica">site-andreia-carvalho.vercel.app — é lá que a cliente vê seus procedimentos e valores</span></label></div>
+    <div class="item"><input type="checkbox" id="i4" /><label for="i4">Mandar um print das configurações para o Sostenes
+      <span class="dica">Só para ele conferir que ficou certo antes de ligar</span></label></div>
+  </div>
+
+  <!-- ---------------------------------------------------------------- WhatsApp -->
+  <div class="bloco">
+    <span class="etiqueta">Para a Emily responder</span>
+    <h2>4. Deixar o WhatsApp pronto</h2>
+    <p class="por-que">Precisa ser o WhatsApp <b>Business</b> — o app verde, de negócio.
+      A troca <b>mantém todas as suas conversas</b> e é o mesmo número.</p>
+
+    <a class="video" href="https://www.youtube.com/watch?v=oZfaM7XBgOU" target="_blank" rel="noopener">
+      <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></span>
+      <span><b>Como migrar do WhatsApp pessoal para Business sem perder conversas</b>
+        <span>2026 · em português</span></span>
+    </a>
+
+    <div class="item"><input type="checkbox" id="w1" /><label for="w1">Ver se você já usa o <b>WhatsApp Business</b>
+      <span class="dica">Se o ícone é verde com um “B” dentro, já é. Aí este passo está pronto</span></label></div>
+    <div class="item"><input type="checkbox" id="w2" /><label for="w2">Se não for, instalar e migrar
+      <span class="dica">Faça o backup primeiro, como o vídeo mostra. Mesmo número, mesmas conversas</span></label></div>
+
+    <div class="falta">
+      <p><b>Você não vai perder o seu WhatsApp.</b> Ele continua no seu celular, com as suas
+        conversas e os seus contatos. Suas ligações normais também não mudam em nada. O sistema
+        entra <b>junto</b>, não no lugar.</p>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------------------- Sostenes -->
+  <div class="bloco">
+    <span class="etiqueta">Dez minutos seus</span>
+    <h2>5. As duas coisas que faltam para o Sostenes</h2>
+    <p class="por-que">Sem estas duas, o sistema não começa a trabalhar sozinho. Pode responder
+      <b>por áudio</b>, do seu jeito — não precisa escrever nada.</p>
+
+    <div class="item"><input type="checkbox" id="s1" /><label for="s1">Ler as <b>três respostas prontas</b> que ele te mandou
+      <span class="dica">Diga se estão com a sua cara, ou mude para as suas palavras</span></label></div>
+    <div class="item"><input type="checkbox" id="s2" /><label for="s2">Contar <b>3 conversas que viraram agendamento e 3 que não</b>
+      <span class="dica">Sem nome de cliente. Só o que aconteceu e o que você acha que fez a diferença</span></label></div>
+  </div>
+
+  <p class="rodape">
+    Ficou com dúvida em qualquer passo? Manda áudio para o Sostenes — não trave em nenhum item.<br />
+    ClinicNow é um produto Zatheon.
+  </p>
+</div>
+
+<script>
+  // Progresso salvo no proprio celular. Nada disto sai daqui — sao caixinhas marcadas, nao dados.
+  var caixas = Array.prototype.slice.call(document.querySelectorAll('.item input'));
+  var barra = document.getElementById('barra');
+  var contador = document.getElementById('contador');
+
+  function pintar() {
+    var feitos = caixas.filter(function (c) { return c.checked; }).length;
+    barra.style.width = (feitos / caixas.length * 100) + '%';
+    contador.textContent = feitos + ' de ' + caixas.length;
+  }
+
+  caixas.forEach(function (c) {
+    try { c.checked = localStorage.getItem('passo.' + c.id) === '1'; } catch (e) {}
+    c.addEventListener('change', function () {
+      try { localStorage.setItem('passo.' + c.id, c.checked ? '1' : '0'); } catch (e) {}
+      pintar();
+    });
+  });
+  pintar();
+
+  // Copiar com retorno visivel: sem o "Copiado!" ela nao sabe se funcionou e copia de novo.
+  document.querySelectorAll('[data-copiar]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var txt = document.getElementById(b.dataset.copiar).textContent;
+      var pronto = function () { var a = b.textContent; b.textContent = 'Copiado!'; setTimeout(function () { b.textContent = a; }, 1600); };
+      if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(pronto, pronto); return; }
+      var t = document.createElement('textarea');
+      t.value = txt; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(t); pronto();
+    });
+  });
+</script>
+</body>
+</html>

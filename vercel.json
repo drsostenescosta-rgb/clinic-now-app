@@ -5,7 +5,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!manual).*)",
+      "source": "/((?!manual|passos).*)",
       "destination": "/index.html"
     }
   ],
